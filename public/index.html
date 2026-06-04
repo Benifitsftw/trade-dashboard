@@ -189,7 +189,7 @@
   <!-- Cards -->
   <div class="cards">
     <div class="card" id="clockCard">
-      <div class="card-label">EST Time</div>
+      <div class="card-label">CST Time</div>
       <div class="card-value neutral" id="clockDisplay">--:--:--</div>
       <div class="card-sub" id="clockSub">—</div>
     </div>
@@ -393,6 +393,16 @@ function renderPositions() {
 }
 
 // ── Clock ──────────────────────────────────────────────────────────────
+function getCST() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
+  const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+  const isDST = Math.max(jan, jul) !== now.getTimezoneOffset();
+  // CST = UTC-6, CDT = UTC-5
+  return new Date(utc + (isDST ? -5 : -6) * 3600000);
+}
+
 function getEST() {
   const now = new Date();
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
@@ -403,16 +413,18 @@ function getEST() {
 }
 
 function updateClock() {
+  const cst = getCST();
   const est = getEST();
-  const h = est.getHours(), m = est.getMinutes(), s = est.getSeconds();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const h12 = (h % 12 || 12).toString().padStart(2,'0');
+  const h = cst.getHours(), m = cst.getMinutes(), s = cst.getSeconds();
+  const hh = h.toString().padStart(2,'0');
   const mm = m.toString().padStart(2,'0');
   const ss = s.toString().padStart(2,'0');
-  document.getElementById('clockDisplay').textContent = `${h12}:${mm}:${ss}`;
-  document.getElementById('lastUpdated').textContent = `Updated ${h12}:${mm}:${ss} ${ampm} EST`;
+  document.getElementById('clockDisplay').textContent = `${hh}:${mm}:${ss}`;
+  document.getElementById('lastUpdated').textContent = `Updated ${hh}:${mm}:${ss} CST`;
 
-  const totalMin = h * 60 + m;
+  // Trading window logic uses EST hours
+  const estH = est.getHours(), estM = est.getMinutes();
+  const totalMin = estH * 60 + estM;
   const PRE = 9*60+30, RESTRICT_END = 10*60, CLOSE = 16*60;
   const banner = document.getElementById('windowBanner');
   const txt = document.getElementById('windowText');
@@ -451,7 +463,7 @@ function updateClock() {
     clockCard.className = 'card'; ruleTime.className = 'rule-check pass'; ruleTime.textContent = '✓';
   }
 
-  document.getElementById('clockSub').textContent = `${ampm} EST`;
+  document.getElementById('clockSub').textContent = `CST · broker EST+1`;
   updateRulesBadge();
 }
 
@@ -514,8 +526,10 @@ function updateRisk(cash, acct, pl) {
   fill.style.background = cls === 'green' ? 'var(--green)' : cls === 'yellow' ? 'var(--yellow)' : 'var(--red)';
   riskSub.textContent = pctR.toFixed(1) + '% cash remaining';
 
-  const now = getEST();
-  document.getElementById('displayRefresh').textContent = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'}) + ' EST';
+  const now = getCST();
+  const rH = now.getHours().toString().padStart(2,'0');
+  const rM = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('displayRefresh').textContent = rH + ':' + rM + ' CST';
   updateRulesBadge();
 }
 
@@ -582,11 +596,15 @@ async function fetchBalances() {
       headers: { 'Authorization': 'Bearer ' + accessToken }
     });
     const balData = await balRes.json();
+    // Use combinedBalances for true total account value across currencies
+    const combined = (balData.combinedBalances || []).find(b => b.currency === 'USD');
     const usd = (balData.perCurrencyBalances || []).find(b => b.currency === 'USD');
-    if (usd) {
-      updateRisk(usd.cash, usd.totalEquity, null);
-      document.getElementById('inputAcct').value = usd.totalEquity.toFixed(2);
-      document.getElementById('inputCash').value = usd.cash.toFixed(2);
+    if (combined || usd) {
+      const totalEquity = combined ? combined.totalEquity : usd.totalEquity;
+      const cash = combined ? combined.cash : usd.cash;
+      updateRisk(cash, totalEquity, null);
+      document.getElementById('inputAcct').value = totalEquity.toFixed(2);
+      document.getElementById('inputCash').value = cash.toFixed(2);
       showToast('✓ Balances loaded from Questrade');
     }
   } catch(e) {
