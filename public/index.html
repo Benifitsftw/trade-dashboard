@@ -591,12 +591,35 @@ async function fetchBalances() {
     });
     const accData = await accRes.json();
     if (!accData.accounts) return;
-    const margin = accData.accounts.find(a => a.type === 'Margin') || accData.accounts[0];
-    const balRes = await fetch(`/api/questrade?endpoint=proxy&url=${encodeURIComponent(apiServer + 'v1/accounts/' + margin.number + '/balances')}`, {
-      headers: { 'Authorization': 'Bearer ' + accessToken }
-    });
-    const balData = await balRes.json();
-    // Use combinedBalances for true total account value across currencies
+
+    // Find active margin account — fetch balances for all margin accounts, pick highest equity
+    const marginAccounts = accData.accounts.filter(a => a.type === 'Margin');
+    const accountToUse = marginAccounts.length <= 1
+      ? (marginAccounts[0] || accData.accounts[0])
+      : null; // will resolve below after fetching balances
+
+    let bestAccount = accountToUse;
+    let bestEquity = -Infinity;
+
+    // If multiple margin accounts, pick the one with highest total equity (active one)
+    const accountsToCheck = marginAccounts.length > 1 ? marginAccounts : [accountToUse];
+    for (const acc of accountsToCheck) {
+      const r = await fetch(`/api/questrade?endpoint=proxy&url=${encodeURIComponent(apiServer + 'v1/accounts/' + acc.number + '/balances')}`, {
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+      });
+      const bd = await r.json();
+      const cb = (bd.combinedBalances || []).find(b => b.currency === 'USD');
+      const ub = (bd.perCurrencyBalances || []).find(b => b.currency === 'USD');
+      const equity = cb ? cb.totalEquity : (ub ? ub.totalEquity : 0);
+      if (equity > bestEquity) {
+        bestEquity = equity;
+        bestAccount = acc;
+        // Store balance data so we don't re-fetch
+        bestAccount._balData = bd;
+      }
+    }
+
+    const balData = bestAccount._balData;
     const combined = (balData.combinedBalances || []).find(b => b.currency === 'USD');
     const usd = (balData.perCurrencyBalances || []).find(b => b.currency === 'USD');
     if (combined || usd) {
@@ -605,7 +628,7 @@ async function fetchBalances() {
       updateRisk(cash, totalEquity, null);
       document.getElementById('inputAcct').value = totalEquity.toFixed(2);
       document.getElementById('inputCash').value = cash.toFixed(2);
-      showToast('✓ Balances loaded from Questrade');
+      showToast('✓ Balances loaded — Account ' + bestAccount.number);
     }
   } catch(e) {
     console.error('Balance fetch error:', e);
