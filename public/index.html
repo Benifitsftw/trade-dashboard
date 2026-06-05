@@ -3,681 +3,322 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Discipline · Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Trade Discipline</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0b; --bg1: #111113; --bg2: #18181c; --bg3: #1f1f24;
-    --border: #2a2a30; --border2: #333339;
-    --text: #e8e8ec; --text2: #8888a0; --text3: #55555f;
-    --green: #00d084; --green-dim: #00d08420; --green-border: #00d08440;
-    --yellow: #f5c842; --yellow-dim: #f5c84218; --yellow-border: #f5c84235;
-    --red: #ff4560; --red-dim: #ff456018; --red-border: #ff456035;
-    --blue: #4d9fff; --blue-dim: #4d9fff15;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'IBM Plex Sans',sans-serif; font-size:13px; min-height:100vh; }
-  body::before {
-    content:''; position:fixed; inset:0;
-    background-image: linear-gradient(var(--border) 1px,transparent 1px), linear-gradient(90deg,var(--border) 1px,transparent 1px);
-    background-size:40px 40px; opacity:0.12; pointer-events:none; z-index:0;
-  }
-  .container { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:24px 20px; }
+:root {
+  --bg:#08080a;--bg1:#0f0f12;--bg2:#151518;--bg3:#1c1c20;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --text:#eeeef2;--text2:#8080a0;--text3:#404055;
+  --green:#00c97a;--gdim:rgba(0,201,122,0.12);--gborder:rgba(0,201,122,0.25);
+  --yellow:#f0b429;--ydim:rgba(240,180,41,0.12);--yborder:rgba(240,180,41,0.25);
+  --red:#f04060;--rdim:rgba(240,64,96,0.12);--rborder:rgba(240,64,96,0.25);
+  --blue:#4d9fff;--bdim:rgba(77,159,255,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.4;pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:24px 20px 60px;}
 
-  /* Header */
-  .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid var(--border); }
-  .header-left { display:flex; align-items:center; gap:12px; }
-  .logo-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 8px var(--green);} 50%{opacity:0.6;box-shadow:0 0 4px var(--green);} }
-  .logo-text { font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:var(--text2); letter-spacing:0.12em; text-transform:uppercase; }
-  .last-updated { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text3); letter-spacing:0.06em; }
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.hdr-left{display:flex;align-items:center;gap:12px;}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:glow 2s ease-in-out infinite;}
+@keyframes glow{0%,100%{opacity:1;box-shadow:0 0 10px var(--green);}50%{opacity:.5;box-shadow:0 0 4px var(--green);}}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.15em;text-transform:uppercase;}
+.hdr-right{display:flex;align-items:center;gap:16px;}
+.sync-status{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.06em;}
+.sync-status.live{color:var(--green);}
+.sync-status.err{color:var(--red);}
 
-  /* Setup */
-  .setup-panel { background:var(--bg2); border:1px solid var(--border2); border-left:3px solid var(--yellow); border-radius:6px; padding:16px 20px; margin-bottom:20px; }
-  .setup-title { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:500; color:var(--yellow); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
-  .setup-row { display:flex; gap:10px; align-items:center; }
-  .setup-input { flex:1; background:var(--bg3); border:1px solid var(--border2); border-radius:4px; padding:8px 12px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:12px; outline:none; transition:border-color 0.2s; }
-  .setup-input:focus { border-color:var(--blue); }
-  .setup-input::placeholder { color:var(--text3); }
-  .btn { background:var(--blue-dim); border:1px solid var(--blue); border-radius:4px; padding:8px 16px; color:var(--blue); font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:500; letter-spacing:0.06em; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
-  .btn:hover { background:var(--blue); color:var(--bg); }
-  .api-status { display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text3); margin-top:8px; }
-  .api-dot { width:5px; height:5px; border-radius:50%; background:var(--text3); }
-  .api-dot.live { background:var(--green); box-shadow:0 0 5px var(--green); }
-  .api-dot.error { background:var(--red); }
-  .api-dot.loading { background:var(--yellow); animation:pulse 1s infinite; }
-  .error-msg { font-size:11px; color:var(--red); margin-top:6px; font-family:'IBM Plex Mono',monospace; }
-  .setup-note { font-size:11px; color:var(--text3); margin-top:8px; line-height:1.5; }
-  .setup-note a { color:var(--blue); text-decoration:none; }
+/* Window banner */
+.banner{border-radius:8px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;transition:all .3s;}
+.banner.go{background:var(--gdim);border:1px solid var(--gborder);}
+.banner.stop{background:var(--rdim);border:1px solid var(--rborder);}
+.banner.off{background:var(--bg2);border:1px solid var(--border);}
+.banner-text{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.05em;}
+.banner.go .banner-text{color:var(--green);}
+.banner.stop .banner-text{color:var(--red);}
+.banner.off .banner-text{color:var(--text2);}
+.banner-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;padding:3px 10px;border-radius:999px;letter-spacing:.08em;}
+.badge.go{background:var(--gborder);color:var(--green);}
+.badge.stop{background:var(--rborder);color:var(--red);}
+.badge.off{background:var(--bg3);color:var(--text3);}
 
-  /* Window Banner */
-  .rule-banner { border-radius:8px; padding:14px 20px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; transition:all 0.3s; }
-  .rule-banner.go { background:var(--green-dim); border:1px solid var(--green-border); }
-  .rule-banner.stop { background:var(--red-dim); border:1px solid var(--red-border); }
-  .rule-banner.off { background:var(--bg2); border:1px solid var(--border); }
-  .banner-text { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:0.06em; }
-  .banner-sub { font-size:11px; color:var(--text2); margin-top:2px; }
-  .rule-badge { font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:500; padding:4px 10px; border-radius:999px; letter-spacing:0.06em; }
-  .badge-go { background:var(--green-border); color:var(--green); }
-  .badge-stop { background:var(--red-border); color:var(--red); }
-  .badge-off { background:var(--bg3); color:var(--text3); }
+/* Cards row */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:border-color .3s,background .3s;}
+.card.g{border-color:var(--gborder);background:linear-gradient(135deg,var(--bg1),var(--gdim));}
+.card.y{border-color:var(--yborder);background:linear-gradient(135deg,var(--bg1),var(--ydim));}
+.card.r{border-color:var(--rborder);background:linear-gradient(135deg,var(--bg1),var(--rdim));}
+.clabel{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;}
+.cval{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:500;line-height:1;margin-bottom:4px;}
+.cval.g{color:var(--green);}
+.cval.y{color:var(--yellow);}
+.cval.r{color:var(--red);}
+.cval.n{color:var(--text);}
+.csub{font-size:11px;color:var(--text2);line-height:1.4;}
 
-  /* Cards */
-  .cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; }
-  .card { background:var(--bg1); border:1px solid var(--border); border-radius:8px; padding:16px 18px; transition:border-color 0.3s, background 0.3s; }
-  .card.green { border-color:var(--green-border); background:linear-gradient(135deg,var(--bg1),var(--green-dim)); }
-  .card.yellow { border-color:var(--yellow-border); background:linear-gradient(135deg,var(--bg1),var(--yellow-dim)); }
-  .card.red { border-color:var(--red-border); background:linear-gradient(135deg,var(--bg1),var(--red-dim)); }
-  .card-label { font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:500; color:var(--text3); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
-  .card-value { font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:600; line-height:1; margin-bottom:4px; }
-  .card-value.green { color:var(--green); }
-  .card-value.yellow { color:var(--yellow); }
-  .card-value.red { color:var(--red); }
-  .card-value.neutral { color:var(--text); }
-  .card-sub { font-size:11px; color:var(--text2); line-height:1.4; }
+/* Panel */
+.panel{background:var(--bg1);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px;}
+.phdr{padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;}
+.ptitle{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;}
+.pbadge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:999px;font-weight:500;}
+.pbody{padding:12px 16px;}
 
-  /* Panel */
-  .panel { background:var(--bg1); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:16px; }
-  .panel-header { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--bg2); }
-  .panel-title { font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:500; color:var(--text3); letter-spacing:0.12em; text-transform:uppercase; }
-  .panel-badge { font-family:'IBM Plex Mono',monospace; font-size:9px; padding:2px 8px; border-radius:999px; font-weight:500; }
-  .panel-body { padding:14px 16px; }
+/* Cash bar */
+.bar-track{background:var(--bg3);border-radius:3px;height:6px;position:relative;overflow:hidden;margin:10px 0 5px;}
+.bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1),background .3s;}
+.bar-marker{position:absolute;top:0;bottom:0;width:1px;opacity:.4;}
+.bar-labels{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);}
+.cash-stats{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap;}
+.cstat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+.cstat-val{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--text);}
 
-  /* Cash Bar */
-  .cash-bar-track { background:var(--bg3); border-radius:3px; height:8px; position:relative; overflow:hidden; margin:12px 0 6px; }
-  .cash-bar-fill { height:100%; border-radius:3px; transition:width 0.8s cubic-bezier(0.4,0,0.2,1), background 0.3s; }
-  .cash-marker { position:absolute; top:0; bottom:0; width:1px; opacity:0.5; }
-  .cash-markers-labels { display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--text3); }
-  .cash-stats { display:flex; gap:24px; margin-top:14px; flex-wrap:wrap; }
-  .cash-stat-label { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:3px; }
-  .cash-stat-val { font-family:'IBM Plex Mono',monospace; font-size:16px; color:var(--text); }
+/* Manual input */
+.input-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}
+.igroup{display:flex;flex-direction:column;gap:5px;}
+.ilabel{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;}
+.ifield{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:8px 10px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;width:100%;}
+.ifield:focus{border-color:var(--blue);}
+.ibtn{background:transparent;border:1px solid var(--border2);border-radius:4px;padding:7px 18px;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s;letter-spacing:.05em;}
+.ibtn:hover{border-color:var(--blue);color:var(--blue);}
 
-  /* Manual Input */
-  .input-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px; }
-  .input-group { display:flex; flex-direction:column; gap:5px; }
-  .input-label { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; }
-  .input-field { background:var(--bg3); border:1px solid var(--border2); border-radius:4px; padding:8px 10px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:13px; outline:none; transition:border-color 0.2s; width:100%; }
-  .input-field:focus { border-color:var(--blue); }
-  .btn-update { background:transparent; border:1px solid var(--border2); border-radius:4px; padding:8px 20px; color:var(--text2); font-family:'IBM Plex Mono',monospace; font-size:11px; cursor:pointer; transition:all 0.15s; margin-top:10px; }
-  .btn-update:hover { border-color:var(--blue); color:var(--blue); }
+/* Positions table */
+.ptable{width:100%;border-collapse:collapse;}
+.ptable th{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;text-align:left;padding:0 10px 8px 0;border-bottom:1px solid var(--border);}
+.ptable th:last-child{text-align:right;padding-right:0;}
+.ptable td{padding:9px 10px 9px 0;border-bottom:.5px solid var(--border);font-size:12px;vertical-align:middle;}
+.ptable td:last-child{text-align:right;padding-right:0;}
+.ptable tr:last-child td{border-bottom:none;}
+.psym{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--text);}
+.pdetail{font-size:10px;color:var(--text3);margin-top:2px;}
+.pflag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:999px;font-weight:500;font-family:'IBM Plex Mono',monospace;}
+.pflag.warn{background:var(--ydim);color:var(--yellow);}
+.pflag.danger{background:var(--rdim);color:var(--red);}
+.pflag.ok{background:var(--gdim);color:var(--green);}
+.pflag.neu{background:var(--bg3);color:var(--text3);}
 
-  /* Two col */
-  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+/* Rules */
+.rule-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border);}
+.rule-item:last-child{border-bottom:none;}
+.rcheck{width:15px;height:15px;border-radius:3px;border:1.5px solid var(--text3);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .2s;}
+.rcheck.pass{border-color:var(--green);background:var(--gdim);color:var(--green);}
+.rcheck.fail{border-color:var(--red);background:var(--rdim);color:var(--red);}
+.rtext{font-size:12px;color:var(--text2);line-height:1.4;flex:1;}
+.rtext strong{color:var(--text);font-weight:500;}
 
-  /* Rules */
-  .rule-item { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
-  .rule-item:last-child { border-bottom:none; }
-  .rule-check { width:16px; height:16px; border-radius:3px; border:1.5px solid var(--border2); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:10px; transition:all 0.2s; }
-  .rule-check.pass { border-color:var(--green); background:var(--green-dim); color:var(--green); }
-  .rule-check.fail { border-color:var(--red); background:var(--red-dim); color:var(--red); }
-  .rule-check.unknown { border-color:var(--text3); color:var(--text3); }
-  .rule-text { font-size:12px; color:var(--text2); line-height:1.4; flex:1; }
-  .rule-text strong { color:var(--text); font-weight:500; }
+/* Two col */
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 
-  /* Risk panel */
-  .risk-big { font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:600; }
-  .risk-big.light { color:var(--green); }
-  .risk-big.moderate { color:var(--yellow); }
-  .risk-big.heavy { color:var(--red); }
-  .risk-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px; color:var(--text2); }
-  .dot { display:inline-block; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-  .dot.g { background:var(--green); }
-  .dot.y { background:var(--yellow); }
-  .dot.r { background:var(--red); box-shadow:0 0 5px var(--red); }
-  .divider { height:1px; background:var(--border); margin:12px 0; }
-  .exit-row { font-size:11px; color:var(--text2); line-height:1.9; }
-  .exit-num { font-family:'IBM Plex Mono',monospace; color:var(--text3); }
+/* Refresh time */
+.refresh-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px;}
 
-  /* Positions Table */
-  .pos-table { width:100%; border-collapse:collapse; }
-  .pos-table th { font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:500; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; text-align:left; padding:0 8px 10px 0; border-bottom:1px solid var(--border); }
-  .pos-table th:last-child { text-align:right; padding-right:0; }
-  .pos-table td { padding:8px 8px 8px 0; border-bottom:1px solid var(--border); vertical-align:middle; font-size:12px; }
-  .pos-table td:last-child { text-align:right; padding-right:0; }
-  .pos-table tr:last-child td { border-bottom:none; }
-  .pos-sym { font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:11px; color:var(--text); }
-  .pos-detail { font-size:10px; color:var(--text3); margin-top:2px; }
+/* Divider */
+.div{height:1px;background:var(--border);margin:12px 0;}
 
-  /* Toast */
-  .toast { position:fixed; bottom:24px; right:24px; background:var(--bg2); border:1px solid var(--border2); border-radius:8px; padding:12px 18px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text); z-index:100; transform:translateY(20px); opacity:0; transition:all 0.3s; pointer-events:none; }
-  .toast.show { transform:translateY(0); opacity:1; }
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);z-index:100;transform:translateY(16px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
 
-  ::-webkit-scrollbar { width:4px; }
-  ::-webkit-scrollbar-track { background:var(--bg); }
-  ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <div class="logo-dot"></div>
-      <span class="logo-text">Trade Discipline</span>
-    </div>
-    <span class="last-updated" id="lastUpdated">—</span>
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="pulse" id="pulseDot"></div>
+    <span class="logo">Trade Discipline</span>
   </div>
-
-  <!-- API Setup -->
-  <div class="setup-panel" id="setupPanel">
-    <div class="setup-title">⚙ Questrade API</div>
-    <div class="setup-row">
-      <input type="password" class="setup-input" id="apiTokenInput" placeholder="Paste your Questrade refresh token..." />
-      <button class="btn" onclick="connectAPI()">Connect</button>
-      <button class="btn" onclick="disconnectAPI()" style="border-color:var(--border2);color:var(--text3);">Clear</button>
-    </div>
-    <div class="error-msg" id="apiError"></div>
-    <div class="api-status">
-      <div class="api-dot" id="apiDot"></div>
-      <span id="apiStatusText">Not connected — manual mode active</span>
-    </div>
-    <div class="setup-note" style="margin-top:8px;">
-      Questrade → API Centre → New device → copy refresh token. Token stored in browser only.
-    </div>
+  <div class="hdr-right">
+    <span class="sync-status" id="syncStatus">Connecting...</span>
+    <span class="sync-status" id="lastUpdate">—</span>
   </div>
+</div>
 
-  <!-- Window Banner -->
-  <div class="rule-banner off" id="windowBanner">
-    <div>
-      <div class="banner-text" id="windowText">Loading...</div>
-      <div class="banner-sub" id="windowSub"></div>
-    </div>
-    <span class="rule-badge badge-off" id="windowBadge">—</span>
+<!-- Window Banner -->
+<div class="banner off" id="banner">
+  <div>
+    <div class="banner-text" id="bannerText">Loading...</div>
+    <div class="banner-sub" id="bannerSub"></div>
   </div>
+  <span class="badge off" id="bannerBadge">—</span>
+</div>
 
-  <!-- Cards -->
-  <div class="cards">
-    <div class="card" id="clockCard">
-      <div class="card-label">CST Time</div>
-      <div class="card-value neutral" id="clockDisplay">--:--:--</div>
-      <div class="card-sub" id="clockSub">—</div>
-    </div>
-    <div class="card" id="cashCard">
-      <div class="card-label">Cash Remaining</div>
-      <div class="card-value neutral" id="cashPct">--%</div>
-      <div class="card-sub" id="cashSub">Enter values below</div>
-    </div>
-    <div class="card" id="riskCard">
-      <div class="card-label">Overnight Risk</div>
-      <div class="card-value neutral" id="riskVal">—</div>
-      <div class="card-sub" id="riskSub">—</div>
-    </div>
+<!-- Cards -->
+<div class="cards">
+  <div class="card" id="clockCard">
+    <div class="clabel">CST Time</div>
+    <div class="cval n" id="clockVal">--:--:--</div>
+    <div class="csub" id="clockSub">CST · broker EST+1</div>
   </div>
+  <div class="card" id="cashCard">
+    <div class="clabel">Cash remaining</div>
+    <div class="cval n" id="cashPct">--%</div>
+    <div class="csub" id="cashSub">Waiting for sync...</div>
+  </div>
+  <div class="card" id="riskCard">
+    <div class="clabel">Overnight risk</div>
+    <div class="cval n" id="riskVal">—</div>
+    <div class="csub" id="riskSub">—</div>
+  </div>
+  <div class="card" id="rtbpCard">
+    <div class="clabel">RTBP</div>
+    <div class="cval n" id="rtbpVal">$—</div>
+    <div class="csub" id="rtbpSub">Real-time buying power</div>
+  </div>
+</div>
 
-  <!-- Cash Panel -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">Liquidity</span>
-      <span class="panel-badge" id="cashBadge" style="background:var(--bg3);color:var(--text3);">—</span>
+<!-- Liquidity Panel -->
+<div class="panel">
+  <div class="phdr">
+    <span class="ptitle">Liquidity</span>
+    <span class="pbadge" id="liqBadge" style="background:var(--bg3);color:var(--text3);">—</span>
+  </div>
+  <div class="pbody">
+    <div class="bar-track">
+      <div class="bar-marker" style="left:12.5%;background:var(--red);"></div>
+      <div class="bar-marker" style="left:25%;background:var(--yellow);"></div>
+      <div class="bar-marker" style="left:33%;background:var(--green);"></div>
+      <div class="bar-fill" id="barFill" style="width:0%;background:var(--red);"></div>
     </div>
-    <div class="panel-body">
-      <div class="cash-bar-track">
-        <div class="cash-marker" style="left:12.5%;background:var(--red);"></div>
-        <div class="cash-marker" style="left:25%;background:var(--yellow);"></div>
-        <div class="cash-marker" style="left:33%;background:var(--green);"></div>
-        <div class="cash-bar-fill" id="cashBarFill" style="width:0%;background:var(--red);"></div>
-      </div>
-      <div class="cash-markers-labels">
-        <span>0%</span>
-        <span style="color:var(--red)">12.5% Heavy</span>
-        <span style="color:var(--yellow)">25% Moderate</span>
-        <span style="color:var(--green)">33% Light</span>
-        <span>100%</span>
-      </div>
-      <div class="cash-stats">
-        <div><div class="cash-stat-label">USD Cash</div><div class="cash-stat-val" id="displayCash">$—</div></div>
-        <div><div class="cash-stat-label">Account Value</div><div class="cash-stat-val" id="displayAcct">$—</div></div>
-        <div><div class="cash-stat-label">Open P&L</div><div class="cash-stat-val" id="displayPL">$—</div></div>
-        <div><div class="cash-stat-label">Last Refresh</div><div class="cash-stat-val" style="font-size:12px;" id="displayRefresh">—</div></div>
-      </div>
+    <div class="bar-labels">
+      <span>0%</span>
+      <span style="color:var(--red)">12.5% Heavy</span>
+      <span style="color:var(--yellow)">25% Mod</span>
+      <span style="color:var(--green)">33% Light</span>
+      <span>100%</span>
+    </div>
+    <div class="cash-stats">
+      <div><div class="cstat-label">RTBP</div><div class="cstat-val" id="statRtbp">$—</div></div>
+      <div><div class="cstat-label">Cash</div><div class="cstat-val" id="statCash">$—</div></div>
+      <div><div class="cstat-label">Equity</div><div class="cstat-val" id="statEquity">$—</div></div>
+      <div><div class="cstat-label">Market value</div><div class="cstat-val" id="statMkt">$—</div></div>
+      <div><div class="cstat-label">Last sync</div><div class="cstat-val" style="font-size:12px;" id="statSync">—</div></div>
     </div>
   </div>
+</div>
 
-  <!-- Manual Input -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">Manual Update</span>
-      <span class="panel-badge" style="background:var(--blue-dim);color:var(--blue);">Override / EOD</span>
-    </div>
-    <div class="panel-body">
-      <div class="input-grid">
-        <div class="input-group">
-          <label class="input-label">Account Value (USD)</label>
-          <input type="number" class="input-field" id="inputAcct" placeholder="e.g. 5424" />
-        </div>
-        <div class="input-group">
-          <label class="input-label">USD Cash</label>
-          <input type="number" class="input-field" id="inputCash" placeholder="e.g. 1500" />
-        </div>
-        <div class="input-group">
-          <label class="input-label">Open P&L (USD)</label>
-          <input type="number" class="input-field" id="inputPL" placeholder="e.g. -496" />
-        </div>
-      </div>
-      <button class="btn-update" onclick="updateManual()">↑ Update Dashboard</button>
-    </div>
+<!-- Manual override -->
+<div class="panel">
+  <div class="phdr">
+    <span class="ptitle">Manual override</span>
+    <span class="pbadge" style="background:var(--bdim);color:var(--blue);">Fallback / EOD</span>
   </div>
-
-  <!-- Two col -->
-  <div class="two-col" style="margin-bottom:16px;">
-
-    <!-- Rules -->
-    <div class="panel" style="margin-bottom:0;">
-      <div class="panel-header">
-        <span class="panel-title">June Rules</span>
-        <span class="panel-badge" id="rulesBadge" style="background:var(--bg3);color:var(--text3);">—</span>
-      </div>
-      <div class="panel-body">
-        <div class="rule-item">
-          <div class="rule-check unknown" id="ruleTime">?</div>
-          <div class="rule-text"><strong>Reduce-only before 10:00 EST</strong><br>No new entries in first 30 min.</div>
-        </div>
-        <div class="rule-item">
-          <div class="rule-check unknown" id="ruleCash">?</div>
-          <div class="rule-text"><strong>25%+ cash before new overnight</strong><br>Minimum before adding positions.</div>
-        </div>
-        <div class="rule-item">
-          <div class="rule-check unknown" id="ruleSize">—</div>
-          <div class="rule-text"><strong>Max 1 contract or $300 USD</strong><br>On any multi-contract entry.</div>
-        </div>
-        <div class="rule-item">
-          <div class="rule-check unknown">?</div>
-          <div class="rule-text"><strong>TP at 30%+ in high vol</strong><br>Exit into strength. Tough luck if it runs further.</div>
-        </div>
-        <div class="rule-item">
-          <div class="rule-check unknown">?</div>
-          <div class="rule-text"><strong>Meditate before session</strong><br>10 seconds. Close the gap.</div>
-        </div>
-      </div>
+  <div class="pbody">
+    <div class="input-grid">
+      <div class="igroup"><label class="ilabel">Account value (USD)</label><input type="number" class="ifield" id="inAcct" placeholder="e.g. 4133"></div>
+      <div class="igroup"><label class="ilabel">RTBP (USD)</label><input type="number" class="ifield" id="inRtbp" placeholder="e.g. 1623"></div>
+      <div class="igroup"><label class="ilabel">Open P&L (USD)</label><input type="number" class="ifield" id="inPL" placeholder="e.g. -331"></div>
     </div>
-
-    <!-- Risk -->
-    <div class="panel" style="margin-bottom:0;">
-      <div class="panel-header">
-        <span class="panel-title">Risk Reference</span>
-      </div>
-      <div class="panel-body">
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
-          <div>
-            <div class="card-label" style="margin-bottom:4px;">Rating</div>
-            <div class="risk-big" id="riskBig">—</div>
-          </div>
-          <div style="flex:1;padding-left:16px;border-left:1px solid var(--border);">
-            <div class="risk-row"><span class="dot g"></span>Light — ≥33% cash</div>
-            <div class="risk-row"><span class="dot y"></span>Moderate — 25–32%</div>
-            <div class="risk-row"><span class="dot r"></span>Heavy — ≤12.5%</div>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div class="card-label" style="margin-bottom:6px;">Exit Framework</div>
-        <div class="exit-row">
-          <span class="exit-num">01 </span>≤3wk exp + loss → <strong>Time-driven</strong><br>
-          <span class="exit-num">02 </span>Moving against → <strong>Stop out</strong><br>
-          <span class="exit-num">03 </span>Exited on strength → <strong>Take profit</strong><br>
-          <span class="exit-num">04 </span>Better opportunity → <strong>Shuffle</strong>
-        </div>
-        <div class="divider"></div>
-        <div class="card-label" style="margin-bottom:4px;">Hard Exit — Jul 17 positions</div>
-        <div style="font-size:12px;color:var(--text2);">
-          <span style="font-family:'IBM Plex Mono',monospace;color:var(--yellow);">Jul 11</span> — Drop-dead date<br>
-          <span style="font-size:11px;color:var(--text3);">No holding into final 10 trading days</span>
-        </div>
-      </div>
-    </div>
+    <button class="ibtn" onclick="applyManual()">↑ Apply</button>
   </div>
+</div>
+
+<!-- Two col: positions + rules -->
+<div class="twocol">
 
   <!-- Positions -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">Positions · Watch</span>
-      <span class="panel-badge" id="posCount" style="background:var(--bg3);color:var(--text3);">June 3 EOD</span>
+  <div class="panel" style="margin-bottom:0;">
+    <div class="phdr">
+      <span class="ptitle">Open positions</span>
+      <span class="pbadge" id="posBadge" style="background:var(--bg3);color:var(--text3);">Live</span>
     </div>
-    <div class="panel-body">
-      <table class="pos-table">
+    <div class="pbody">
+      <table class="ptable">
         <thead>
           <tr>
             <th>Symbol</th>
-            <th>DTE</th>
-            <th>Basis</th>
+            <th>Qty</th>
             <th>P&L</th>
-            <th style="text-align:right;">Action</th>
+            <th style="text-align:right;">Flag</th>
           </tr>
         </thead>
-        <tbody id="posTableBody"></tbody>
+        <tbody id="posBody">
+          <tr><td colspan="4" style="color:var(--text3);font-size:12px;padding:12px 0;">Waiting for sync...</td></tr>
+        </tbody>
       </table>
+      <div class="refresh-note" id="posRefresh">—</div>
     </div>
   </div>
+
+  <!-- Rules -->
+  <div class="panel" style="margin-bottom:0;">
+    <div class="phdr">
+      <span class="ptitle">June rules</span>
+      <span class="pbadge" id="rulesBadge" style="background:var(--bg3);color:var(--text3);">—</span>
+    </div>
+    <div class="pbody">
+      <div class="rule-item">
+        <div class="rcheck" id="rTime">?</div>
+        <div class="rtext"><strong>Reduce-only before 10:00 EST</strong><br>No new entries in first 30 min.</div>
+      </div>
+      <div class="rule-item">
+        <div class="rcheck" id="rCash">?</div>
+        <div class="rtext"><strong>25%+ RTBP before new overnight</strong><br>Minimum before adding positions.</div>
+      </div>
+      <div class="rule-item">
+        <div class="rcheck" id="rSize" style="border-color:var(--text3);color:var(--text3);">—</div>
+        <div class="rtext"><strong>Max 1 contract or $300 USD</strong><br>On any multi-contract entry.</div>
+      </div>
+      <div class="rule-item">
+        <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
+        <div class="rtext"><strong>Intraday TP at 15% · Swing TP at 30%</strong><br>GTC order placed at entry.</div>
+      </div>
+      <div class="rule-item">
+        <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
+        <div class="rtext"><strong>Jul 11 hard exit — all July 17 positions</strong><br>No holding into final 10 trading days.</div>
+      </div>
+
+      <div class="div"></div>
+
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Exit framework</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.9;">
+        <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">01</span> ≤3wk exp + loss → <strong style="color:var(--text);">Time-driven</strong><br>
+        <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">02</span> Moving against → <strong style="color:var(--text);">Stop out</strong><br>
+        <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">03</span> Exited on strength → <strong style="color:var(--text);">Take profit</strong><br>
+        <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">04</span> Better opportunity → <strong style="color:var(--text);">Shuffle</strong>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Positions ──────────────────────────────────────────────────────────
-const positions = [
-  { sym:'CCJ 120C Jul17',       dte:44, basis:7.35,   pl:14,   action:'Hold — above basis', ac:'green' },
-  { sym:'COPX 90C Jul17',       dte:44, basis:8.30,   pl:-180, action:'Hold — news tomorrow', ac:'yellow' },
-  { sym:'COPX 100C Jul17',      dte:44, basis:3.80,   pl:-89,  action:'REDUCE — first priority', ac:'red' },
-  { sym:'BABA 140C Jul17 ×2',   dte:44, basis:4.495,  pl:-297, action:'Hold — spread', ac:'yellow' },
-  { sym:'BABA 135C Jul17 ×-1',  dte:44, basis:6.48,   pl:213,  action:'Short leg — hold', ac:'green' },
-  { sym:'EWC 60C Jul17 ×7',     dte:44, basis:0.7929, pl:-30,  action:'Target $63.50 · exit Jul 11', ac:'yellow' },
-  { sym:'TENB 30C Jul17 ×2',    dte:44, basis:2.80,   pl:-36,  action:'CLOSE — post-PANW risk', ac:'red' },
-  { sym:'TMDX 70C Jul17',       dte:44, basis:6.50,   pl:-30,  action:'TP above $73 · reenter $70', ac:'yellow' },
-  { sym:'XEG 28C Jun26 ×9',     dte:23, basis:0.7867, pl:-177, action:'Watch — 23 DTE', ac:'yellow' },
-  { sym:'AG 21C Jul17 ×2',      dte:44, basis:2.00,   pl:-82,  action:'Hold — silver theme', ac:'yellow' },
-  { sym:'HIMS 28C Jul17',       dte:44, basis:2.85,   pl:24,   action:'Hold — above basis', ac:'green' },
-  { sym:'VIR 8C Jan27',         dte:226,basis:3.00,   pl:-3,   action:'Long-dated — low urgency', ac:'neutral' },
-];
+// ── State ──────────────────────────────────────────────────────────────
+let liveData = null;
+let manualMode = false;
 
-function renderPositions() {
-  const tbody = document.getElementById('posTableBody');
-  tbody.innerHTML = '';
-  positions.forEach(p => {
-    const plPct = ((p.pl / (p.basis * 100)) * 100).toFixed(1);
-    const plColor = p.pl >= 0 ? 'var(--green)' : 'var(--red)';
-    const dteColor = p.dte <= 16 ? 'var(--red)' : p.dte <= 23 ? 'var(--yellow)' : 'var(--text2)';
-    const actionColor = p.ac === 'red' ? 'var(--red)' : p.ac === 'green' ? 'var(--green)' : p.ac === 'yellow' ? 'var(--yellow)' : 'var(--text3)';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><div class="pos-sym">${p.sym}</div></td>
-      <td style="font-family:'IBM Plex Mono',monospace;color:${dteColor};font-size:12px;">${p.dte}d</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text2);">$${p.basis}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:${plColor};">
-        ${p.pl >= 0 ? '+' : ''}$${p.pl}
-        <div style="font-size:10px;opacity:0.7;">${p.pl >= 0 ? '+' : ''}${plPct}%</div>
-      </td>
-      <td style="font-size:11px;color:${actionColor};text-align:right;font-weight:${p.ac==='red'?'500':'400'};">${p.action}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-// ── Clock ──────────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────
 function getCST() {
   const now = new Date();
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
-  const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
-  const isDST = Math.max(jan, jul) !== now.getTimezoneOffset();
-  // CST = UTC-6, CDT = UTC-5
+  const jan = new Date(now.getFullYear(),0,1).getTimezoneOffset();
+  const jul = new Date(now.getFullYear(),6,1).getTimezoneOffset();
+  const isDST = Math.max(jan,jul) !== now.getTimezoneOffset();
   return new Date(utc + (isDST ? -5 : -6) * 3600000);
 }
 
 function getEST() {
   const now = new Date();
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
-  const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
-  const isDST = Math.max(jan, jul) !== now.getTimezoneOffset();
+  const jan = new Date(now.getFullYear(),0,1).getTimezoneOffset();
+  const jul = new Date(now.getFullYear(),6,1).getTimezoneOffset();
+  const isDST = Math.max(jan,jul) !== now.getTimezoneOffset();
   return new Date(utc + (isDST ? -4 : -5) * 3600000);
 }
 
-function updateClock() {
-  const cst = getCST();
-  const est = getEST();
-  const h = cst.getHours(), m = cst.getMinutes(), s = cst.getSeconds();
-  const hh = h.toString().padStart(2,'0');
-  const mm = m.toString().padStart(2,'0');
-  const ss = s.toString().padStart(2,'0');
-  document.getElementById('clockDisplay').textContent = `${hh}:${mm}:${ss}`;
-  document.getElementById('lastUpdated').textContent = `Updated ${hh}:${mm}:${ss} CST`;
+function fmt(n) { return n >= 0 ? `+$${n.toLocaleString()}` : `-$${Math.abs(n).toLocaleString()}`; }
+function fmtD(n) { return `$${Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`; }
 
-  // Trading window logic uses EST hours
-  const estH = est.getHours(), estM = est.getMinutes();
-  const totalMin = estH * 60 + estM;
-  const PRE = 9*60+30, RESTRICT_END = 10*60, CLOSE = 16*60;
-  const banner = document.getElementById('windowBanner');
-  const txt = document.getElementById('windowText');
-  const sub = document.getElementById('windowSub');
-  const badge = document.getElementById('windowBadge');
-  const clockCard = document.getElementById('clockCard');
-  const ruleTime = document.getElementById('ruleTime');
-
-  if (totalMin < PRE) {
-    banner.className = 'rule-banner off';
-    txt.textContent = 'PRE-MARKET — Opens in ' + (PRE - totalMin) + ' min';
-    sub.textContent = 'Set your GTC exits before open';
-    badge.className = 'rule-badge badge-off'; badge.textContent = 'PRE-MARKET';
-    clockCard.className = 'card'; ruleTime.className = 'rule-check pass'; ruleTime.textContent = '✓';
-  } else if (totalMin < RESTRICT_END) {
-    const left = RESTRICT_END - totalMin;
-    banner.className = 'rule-banner stop';
-    txt.style.color = 'var(--red)';
-    txt.textContent = `🚫 REDUCE ONLY — ${left} min remaining`;
-    sub.textContent = 'Exits only. No new opening positions.';
-    badge.className = 'rule-badge badge-stop'; badge.textContent = 'RESTRICTED';
-    clockCard.className = 'card red'; ruleTime.className = 'rule-check fail'; ruleTime.textContent = '✗';
-  } else if (totalMin < CLOSE) {
-    banner.className = 'rule-banner go';
-    txt.style.color = 'var(--green)';
-    txt.textContent = '✓ TRADING WINDOW OPEN';
-    sub.textContent = 'Optimal window: 10:00–11:00 EST';
-    badge.className = 'rule-badge badge-go'; badge.textContent = 'OPEN';
-    clockCard.className = 'card green'; ruleTime.className = 'rule-check pass'; ruleTime.textContent = '✓';
-  } else {
-    banner.className = 'rule-banner off';
-    txt.style.color = 'var(--text)';
-    txt.textContent = 'MARKET CLOSED — After hours';
-    sub.textContent = 'Set exit orders for tomorrow';
-    badge.className = 'rule-badge badge-off'; badge.textContent = 'CLOSED';
-    clockCard.className = 'card'; ruleTime.className = 'rule-check pass'; ruleTime.textContent = '✓';
-  }
-
-  document.getElementById('clockSub').textContent = `CST · broker EST+1`;
-  updateRulesBadge();
-}
-
-// ── Risk / Cash ────────────────────────────────────────────────────────
-function updateRisk(cash, acct, pl) {
-  if (!cash || !acct || acct === 0) return;
-  const pct = (cash / acct) * 100;
-  const pctR = Math.round(pct * 10) / 10;
-
-  document.getElementById('cashPct').textContent = pctR.toFixed(1) + '%';
-  document.getElementById('cashSub').textContent = `$${cash.toLocaleString()} of $${acct.toLocaleString()}`;
-  document.getElementById('displayCash').textContent = '$' + parseFloat(cash).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('displayAcct').textContent = '$' + parseFloat(acct).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
-
-  const plEl = document.getElementById('displayPL');
-  if (pl !== null && pl !== undefined && !isNaN(pl)) {
-    plEl.textContent = (pl >= 0 ? '+$' : '-$') + Math.abs(pl).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
-    plEl.style.color = pl >= 0 ? 'var(--green)' : 'var(--red)';
-  }
-
-  const fill = document.getElementById('cashBarFill');
-  fill.style.width = Math.min(pct, 100) + '%';
-
-  const cashCard = document.getElementById('cashCard');
-  const riskCard = document.getElementById('riskCard');
-  const cashPctEl = document.getElementById('cashPct');
-  const riskVal = document.getElementById('riskVal');
-  const riskBig = document.getElementById('riskBig');
-  const cashBadge = document.getElementById('cashBadge');
-  const ruleCash = document.getElementById('ruleCash');
-  const riskSub = document.getElementById('riskSub');
-
-  let rating, cls;
-  if (pct >= 33) {
-    rating = 'LIGHT'; cls = 'green';
-    cashBadge.style.cssText = 'background:var(--green-dim);color:var(--green);';
-    ruleCash.className = 'rule-check pass'; ruleCash.textContent = '✓';
-  } else if (pct >= 25) {
-    rating = 'MODERATE'; cls = 'yellow';
-    cashBadge.style.cssText = 'background:var(--yellow-dim);color:var(--yellow);';
-    ruleCash.className = 'rule-check pass'; ruleCash.textContent = '✓';
-  } else if (pct > 12.5) {
-    rating = 'MODERATE+'; cls = 'yellow';
-    cashBadge.style.cssText = 'background:var(--yellow-dim);color:var(--yellow);';
-    ruleCash.className = 'rule-check fail'; ruleCash.textContent = '✗';
-  } else {
-    rating = 'HEAVY'; cls = 'red';
-    cashBadge.style.cssText = 'background:var(--red-dim);color:var(--red);';
-    ruleCash.className = 'rule-check fail'; ruleCash.textContent = '✗';
-  }
-
-  cashBadge.textContent = rating;
-  cashCard.className = `card ${cls}`;
-  riskCard.className = `card ${cls}`;
-  cashPctEl.className = `card-value ${cls}`;
-  riskVal.className = `card-value ${cls}`;
-  riskVal.textContent = rating;
-  riskBig.className = `risk-big ${rating.toLowerCase().replace('+','')}`;
-  riskBig.textContent = rating;
-  fill.style.background = cls === 'green' ? 'var(--green)' : cls === 'yellow' ? 'var(--yellow)' : 'var(--red)';
-  riskSub.textContent = pctR.toFixed(1) + '% cash remaining';
-
-  const now = getCST();
-  const rH = now.getHours().toString().padStart(2,'0');
-  const rM = now.getMinutes().toString().padStart(2,'0');
-  document.getElementById('displayRefresh').textContent = rH + ':' + rM + ' CST';
-  updateRulesBadge();
-}
-
-function updateRulesBadge() {
-  const fails = document.querySelectorAll('.rule-check.fail').length;
-  const badge = document.getElementById('rulesBadge');
-  if (fails === 0) {
-    badge.style.cssText = 'background:var(--green-dim);color:var(--green);';
-    badge.textContent = 'All clear';
-  } else {
-    badge.style.cssText = 'background:var(--red-dim);color:var(--red);';
-    badge.textContent = fails + ' violation' + (fails > 1 ? 's' : '');
-  }
-}
-
-// ── Manual Update ──────────────────────────────────────────────────────
-function updateManual() {
-  const acct = parseFloat(document.getElementById('inputAcct').value);
-  const cash = parseFloat(document.getElementById('inputCash').value);
-  const pl = parseFloat(document.getElementById('inputPL').value);
-  if (isNaN(acct) || isNaN(cash)) { showToast('Enter account value and cash'); return; }
-  saveState({ cash, acct, pl: isNaN(pl) ? null : pl });
-  updateRisk(cash, acct, isNaN(pl) ? null : pl);
-  showToast('✓ Dashboard updated');
-}
-
-// ── API ────────────────────────────────────────────────────────────────
-let accessToken = null, apiServer = null;
-
-async function connectAPI() {
-  const token = document.getElementById('apiTokenInput').value.trim();
-  if (!token || token.includes('•')) { showToast('Enter a valid token'); return; }
-  setAPIStatus('loading', 'Connecting...');
-  document.getElementById('apiError').textContent = '';
-  try {
-    const res = await fetch(`/api/questrade?endpoint=refresh&refresh_token=${encodeURIComponent(token)}`);
-    const data = await res.json();
-    if (data.access_token && data.api_server) {
-      accessToken = data.access_token;
-      apiServer = data.api_server;
-      saveState({ apiToken: token });
-      setAPIStatus('live', 'Connected — auto-refreshing balances');
-      showToast('✓ Connected to Questrade');
-      await fetchBalances();
-    } else {
-      throw new Error(data.error_description || 'Auth failed');
-    }
-  } catch(e) {
-    setAPIStatus('error', 'Failed — using manual mode');
-    document.getElementById('apiError').textContent = 'Error: ' + (e.message || 'Check token');
-  }
-}
-
-async function fetchBalances() {
-  if (!accessToken || !apiServer) return;
-  try {
-    const accRes = await fetch(`/api/questrade?endpoint=proxy&url=${encodeURIComponent(apiServer + 'v1/accounts')}`, {
-      headers: { 'Authorization': 'Bearer ' + accessToken }
-    });
-    const accData = await accRes.json();
-    if (!accData.accounts) return;
-
-    // Find active margin account — fetch balances for all margin accounts, pick highest equity
-    const marginAccounts = accData.accounts.filter(a => a.type === 'Margin');
-    const accountToUse = marginAccounts.length <= 1
-      ? (marginAccounts[0] || accData.accounts[0])
-      : null; // will resolve below after fetching balances
-
-    let bestAccount = accountToUse;
-    let bestEquity = -Infinity;
-
-    // If multiple margin accounts, pick the one with highest total equity (active one)
-    const accountsToCheck = marginAccounts.length > 1 ? marginAccounts : [accountToUse];
-    for (const acc of accountsToCheck) {
-      const r = await fetch(`/api/questrade?endpoint=proxy&url=${encodeURIComponent(apiServer + 'v1/accounts/' + acc.number + '/balances')}`, {
-        headers: { 'Authorization': 'Bearer ' + accessToken }
-      });
-      const bd = await r.json();
-      const cb = (bd.combinedBalances || []).find(b => b.currency === 'USD');
-      const ub = (bd.perCurrencyBalances || []).find(b => b.currency === 'USD');
-      const equity = cb ? cb.totalEquity : (ub ? ub.totalEquity : 0);
-      if (equity > bestEquity) {
-        bestEquity = equity;
-        bestAccount = acc;
-        // Store balance data so we don't re-fetch
-        bestAccount._balData = bd;
-      }
-    }
-
-    const balData = bestAccount._balData;
-    const combined = (balData.combinedBalances || []).find(b => b.currency === 'USD');
-    const usd = (balData.perCurrencyBalances || []).find(b => b.currency === 'USD');
-    if (combined || usd) {
-      const totalEquity = combined ? combined.totalEquity : usd.totalEquity;
-      const cash = combined ? combined.cash : usd.cash;
-      updateRisk(cash, totalEquity, null);
-      document.getElementById('inputAcct').value = totalEquity.toFixed(2);
-      document.getElementById('inputCash').value = cash.toFixed(2);
-      showToast('✓ Balances loaded — Account ' + bestAccount.number);
-    }
-  } catch(e) {
-    console.error('Balance fetch error:', e);
-  }
-}
-
-function disconnectAPI() {
-  accessToken = null; apiServer = null;
-  saveState({ apiToken: null });
-  document.getElementById('apiTokenInput').value = '';
-  setAPIStatus('', 'Disconnected — manual mode');
-  showToast('Disconnected');
-}
-
-function setAPIStatus(status, text) {
-  document.getElementById('apiDot').className = 'api-dot ' + status;
-  document.getElementById('apiStatusText').textContent = text;
-}
-
-// ── Storage ────────────────────────────────────────────────────────────
-function saveState(updates) {
-  try {
-    const cur = JSON.parse(localStorage.getItem('tradeDash') || '{}');
-    const next = { ...cur, ...updates };
-    localStorage.setItem('tradeDash', JSON.stringify(next));
-  } catch(e) {}
-}
-
-function loadState() {
-  try {
-    const s = JSON.parse(localStorage.getItem('tradeDash') || '{}');
-    if (s.cash && s.acct) {
-      document.getElementById('inputAcct').value = s.acct;
-      document.getElementById('inputCash').value = s.cash;
-      if (s.pl !== null && s.pl !== undefined) document.getElementById('inputPL').value = s.pl;
-      updateRisk(s.cash, s.acct, s.pl);
-    }
-    if (s.apiToken) {
-      document.getElementById('apiTokenInput').value = '••••••••••••••••';
-      // Auto reconnect
-      setTimeout(() => {
-        document.getElementById('apiTokenInput').value = s.apiToken;
-        connectAPI();
-      }, 500);
-    }
-  } catch(e) {}
-}
-
-// ── Toast ──────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -685,13 +326,248 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+function save(k,v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } }
+
+// ── Clock ──────────────────────────────────────────────────────────────
+function updateClock() {
+  const cst = getCST();
+  const est = getEST();
+  const hh = cst.getHours().toString().padStart(2,'0');
+  const mm = cst.getMinutes().toString().padStart(2,'0');
+  const ss = cst.getSeconds().toString().padStart(2,'0');
+  document.getElementById('clockVal').textContent = `${hh}:${mm}:${ss}`;
+  document.getElementById('lastUpdate').textContent = `${hh}:${mm} CST`;
+
+  const estH = est.getHours(), estM = est.getMinutes();
+  const tot = estH * 60 + estM;
+  const PRE = 9*60+30, END = 10*60, CLOSE = 16*60;
+  const banner = document.getElementById('banner');
+  const bText = document.getElementById('bannerText');
+  const bSub = document.getElementById('bannerSub');
+  const bBadge = document.getElementById('bannerBadge');
+  const clockCard = document.getElementById('clockCard');
+  const rTime = document.getElementById('rTime');
+
+  bText.style.color = '';
+
+  if (tot < PRE) {
+    banner.className='banner off'; bText.textContent='Pre-market — set your GTC exits before open';
+    bSub.textContent=''; bBadge.className='badge off'; bBadge.textContent='PRE-MARKET';
+    clockCard.className='card'; rTime.className='rcheck pass'; rTime.textContent='✓';
+  } else if (tot < END) {
+    const left = END - tot;
+    banner.className='banner stop'; bText.style.color='var(--red)';
+    bText.textContent=`🚫 REDUCE ONLY — ${left} min remaining`;
+    bSub.textContent='Exits only. No new opening positions.';
+    bBadge.className='badge stop'; bBadge.textContent='RESTRICTED';
+    clockCard.className='card r'; rTime.className='rcheck fail'; rTime.textContent='✗';
+  } else if (tot < CLOSE) {
+    banner.className='banner go'; bText.style.color='var(--green)';
+    bText.textContent='✓ Trading window open';
+    bSub.textContent='Optimal: 10:00–11:00 EST · Don\'t do too much today.';
+    bBadge.className='badge go'; bBadge.textContent='OPEN';
+    clockCard.className='card g'; rTime.className='rcheck pass'; rTime.textContent='✓';
+  } else {
+    banner.className='banner off'; bText.textContent='Market closed — set exit orders for tomorrow';
+    bSub.textContent=''; bBadge.className='badge off'; bBadge.textContent='CLOSED';
+    clockCard.className='card'; rTime.className='rcheck pass'; rTime.textContent='✓';
+  }
+  updateRulesBadge();
+}
+
+// ── Risk display ───────────────────────────────────────────────────────
+function applyRisk(rtbp, equity, cash, mktVal, ts) {
+  if (!rtbp || !equity || equity === 0) return;
+  const pct = (rtbp / equity) * 100;
+  const pctR = Math.round(pct * 10) / 10;
+
+  document.getElementById('cashPct').textContent = pctR.toFixed(1) + '%';
+  document.getElementById('cashSub').textContent = `${fmtD(rtbp)} of ${fmtD(equity)}`;
+  document.getElementById('rtbpVal').textContent = fmtD(rtbp);
+
+  const fill = document.getElementById('barFill');
+  fill.style.width = Math.min(pct, 100) + '%';
+
+  const cashCard = document.getElementById('cashCard');
+  const riskCard = document.getElementById('riskCard');
+  const rtbpCard = document.getElementById('rtbpCard');
+  const cashPct = document.getElementById('cashPct');
+  const riskVal = document.getElementById('riskVal');
+  const riskSub = document.getElementById('riskSub');
+  const liqBadge = document.getElementById('liqBadge');
+  const rCash = document.getElementById('rCash');
+
+  let rating, cls;
+  if (pct >= 33) {
+    rating='LIGHT'; cls='g';
+    liqBadge.style.cssText='background:var(--gdim);color:var(--green);';
+    rCash.className='rcheck pass'; rCash.textContent='✓';
+  } else if (pct >= 25) {
+    rating='MODERATE'; cls='y';
+    liqBadge.style.cssText='background:var(--ydim);color:var(--yellow);';
+    rCash.className='rcheck pass'; rCash.textContent='✓';
+  } else if (pct > 12.5) {
+    rating='MODERATE+'; cls='y';
+    liqBadge.style.cssText='background:var(--ydim);color:var(--yellow);';
+    rCash.className='rcheck fail'; rCash.textContent='✗';
+  } else {
+    rating='HEAVY'; cls='r';
+    liqBadge.style.cssText='background:var(--rdim);color:var(--red);';
+    rCash.className='rcheck fail'; rCash.textContent='✗';
+  }
+
+  liqBadge.textContent = rating;
+  cashCard.className = `card ${cls}`;
+  riskCard.className = `card ${cls}`;
+  rtbpCard.className = `card ${cls}`;
+  cashPct.className = `cval ${cls}`;
+  riskVal.className = `cval ${cls}`;
+  riskVal.textContent = rating;
+  riskSub.textContent = pctR.toFixed(1) + '% buying power remaining';
+  fill.style.background = cls === 'g' ? 'var(--green)' : cls === 'y' ? 'var(--yellow)' : 'var(--red)';
+
+  document.getElementById('statRtbp').textContent = fmtD(rtbp);
+  document.getElementById('statCash').textContent = fmtD(cash || 0);
+  document.getElementById('statEquity').textContent = fmtD(equity);
+  document.getElementById('statMkt').textContent = fmtD(mktVal || 0);
+
+  if (ts) {
+    const d = new Date(ts);
+    const cst = getCST();
+    const diff = Math.round((cst - d) / 60000);
+    document.getElementById('statSync').textContent = diff <= 1 ? 'just now' : `${diff}m ago`;
+    document.getElementById('posRefresh').textContent = `Last sync: ${diff <= 1 ? 'just now' : diff + 'm ago'}`;
+  }
+
+  updateRulesBadge();
+}
+
+// ── Positions ──────────────────────────────────────────────────────────
+function renderPositions(positions) {
+  const tbody = document.getElementById('posBody');
+  if (!positions || positions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text3);font-size:12px;padding:12px 0;">No open positions</td></tr>';
+    document.getElementById('posBadge').textContent = '0';
+    return;
+  }
+
+  document.getElementById('posBadge').textContent = `${positions.length} live`;
+  document.getElementById('posBadge').style.cssText = 'background:var(--gdim);color:var(--green);';
+
+  tbody.innerHTML = '';
+  positions.forEach(p => {
+    const plColor = p.openPL >= 0 ? 'var(--green)' : 'var(--red)';
+    const absPct = Math.abs(p.openPLPct);
+
+    // Flag logic
+    let flag = '', flagCls = 'neu';
+    if (p.openPLPct <= -50) {
+      flag = '>50% loss'; flagCls = 'danger';
+    } else if (p.openPLPct <= -30) {
+      flag = '>30% loss'; flagCls = 'warn';
+    } else if (p.openPLPct >= 30) {
+      flag = 'TP zone 30%+'; flagCls = 'warn';
+    } else if (p.openPLPct >= 15) {
+      flag = 'TP zone 15%+'; flagCls = 'ok';
+    } else if (p.openPL >= 0) {
+      flag = 'on track'; flagCls = 'ok';
+    } else {
+      flag = 'hold'; flagCls = 'neu';
+    }
+
+    // Clean symbol display
+    const sym = p.symbol.replace(/(\w+)(\d{2})(\w{3})(\d{2})([CP])([\d.]+)/,
+      (m,t,y,mo,d,type,strike) => `${t} ${strike}${type === 'C' ? '▲' : '▼'}`).substring(0,24);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="psym">${sym}</div>
+        <div class="pdetail">×${p.qty} · avg $${p.avgPrice} → $${p.currentPrice}</div>
+      </td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:var(--text2);font-size:12px;">${p.qty}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:${plColor};font-size:12px;">
+        ${p.openPL >= 0 ? '+' : ''}$${p.openPL}
+        <div style="font-size:10px;opacity:.7;">${p.openPLPct >= 0 ? '+' : ''}${p.openPLPct}%</div>
+      </td>
+      <td><span class="pflag ${flagCls}">${flag}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Rules badge ────────────────────────────────────────────────────────
+function updateRulesBadge() {
+  const fails = document.querySelectorAll('.rcheck.fail').length;
+  const badge = document.getElementById('rulesBadge');
+  if (fails === 0) {
+    badge.style.cssText = 'background:var(--gdim);color:var(--green);';
+    badge.textContent = 'All clear';
+  } else {
+    badge.style.cssText = 'background:var(--rdim);color:var(--red);';
+    badge.textContent = `${fails} violation${fails > 1 ? 's' : ''}`;
+  }
+}
+
+// ── Fetch from API ─────────────────────────────────────────────────────
+async function fetchLive() {
+  try {
+    const [balRes, posRes] = await Promise.all([
+      fetch('/api/balance'),
+      fetch('/api/positions')
+    ]);
+    const bal = await balRes.json();
+    const pos = await posRes.json();
+
+    if (bal.status === 'ok') {
+      applyRisk(bal.rtbp, bal.totalEquity, bal.cash, bal.marketValue, bal.timestamp);
+      document.getElementById('syncStatus').textContent = '● Live';
+      document.getElementById('syncStatus').className = 'sync-status live';
+      manualMode = false;
+    } else {
+      document.getElementById('syncStatus').textContent = '○ Sync offline';
+      document.getElementById('syncStatus').className = 'sync-status err';
+    }
+
+    if (pos.status === 'ok') {
+      renderPositions(pos.positions);
+    }
+
+  } catch(e) {
+    document.getElementById('syncStatus').textContent = '○ API error';
+    document.getElementById('syncStatus').className = 'sync-status err';
+  }
+}
+
+// ── Manual override ────────────────────────────────────────────────────
+function applyManual() {
+  const acct = parseFloat(document.getElementById('inAcct').value);
+  const rtbp = parseFloat(document.getElementById('inRtbp').value);
+  const pl = parseFloat(document.getElementById('inPL').value);
+  if (isNaN(acct) || isNaN(rtbp)) { showToast('Enter account value and RTBP'); return; }
+  save('manual', {acct, rtbp, pl: isNaN(pl) ? 0 : pl});
+  applyRisk(rtbp, acct, null, null, null);
+  manualMode = true;
+  showToast('✓ Manual values applied');
+}
+
 // ── Init ───────────────────────────────────────────────────────────────
-renderPositions();
+// Load saved manual values
+const saved = load('manual');
+if (saved) {
+  document.getElementById('inAcct').value = saved.acct;
+  document.getElementById('inRtbp').value = saved.rtbp;
+  if (saved.pl) document.getElementById('inPL').value = saved.pl;
+}
+
+// Clock
 updateClock();
 setInterval(updateClock, 1000);
-// Auto refresh balances every 60s if connected
-setInterval(() => { if (accessToken) fetchBalances(); }, 60000);
-loadState();
+
+// Live fetch
+fetchLive();
+setInterval(fetchLive, 60000);
 </script>
 </body>
 </html>
