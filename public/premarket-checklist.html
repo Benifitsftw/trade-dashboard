@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Market · State Check</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0e;
+    --bg1: #131316;
+    --bg2: #1a1a1f;
+    --bg3: #202026;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0f4;
+    --text2: #888894;
+    --text3: #4a4a58;
+    --green: #2dd68c;
+    --green-dim: rgba(45,214,140,0.1);
+    --yellow: #f0c040;
+    --yellow-dim: rgba(240,192,64,0.1);
+    --red: #f04060;
+    --red-dim: rgba(240,64,96,0.1);
+    --blue: #4090ff;
+    --blue-dim: rgba(64,144,255,0.1);
+    --orange: #f08040;
+    --orange-dim: rgba(240,128,64,0.1);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 32px 20px 60px;
+  }
+
+  /* Subtle scanline texture */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  /* Header */
+  .header { margin-bottom: 36px; }
+  .date-line {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .title {
+    font-size: 26px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .title span { color: var(--green); font-weight: 500; }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Slider rows */
+  .slider-row {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .slider-row:focus-within { border-color: var(--border2); }
+
+  .slider-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .slider-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .slider-desc {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  .slider-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 28px;
+    text-align: right;
+    transition: color 0.2s;
+  }
+
+  /* Custom slider */
+  .slider-track { position: relative; height: 4px; margin: 4px 0 8px; }
+  .slider-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    border-radius: 2px;
+    transition: width 0.1s, background 0.2s;
+    pointer-events: none;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--bg3);
+    border-radius: 2px;
+    outline: none;
+    position: relative;
+    z-index: 1;
+    background: transparent;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--text);
+    cursor: pointer;
+    border: 2px solid var(--bg1);
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 0 0 rgba(255,255,255,0);
+  }
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.08);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--text); cursor: pointer;
+    border: 2px solid var(--bg1);
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  /* Flag inline */
+  .flag-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    margin-top: 6px;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .flag-inline.show { opacity: 1; transform: translateY(0); }
+  .flag-inline.red { background: var(--red-dim); color: var(--red); }
+  .flag-inline.yellow { background: var(--yellow-dim); color: var(--yellow); }
+  .flag-inline.green { background: var(--green-dim); color: var(--green); }
+
+  /* Checkboxes */
+  .check-list { display: flex; flex-direction: column; gap: 8px; }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .check-item:hover { border-color: var(--border2); }
+  .check-item.checked { border-color: rgba(45,214,140,0.3); background: rgba(45,214,140,0.04); }
+
+  .check-box {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--text3);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .check-item.checked .check-box {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .check-mark {
+    width: 10px;
+    height: 7px;
+    border-left: 2px solid var(--bg);
+    border-bottom: 2px solid var(--bg);
+    transform: rotate(-45deg) translate(1px, -1px);
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .check-item.checked .check-mark { opacity: 1; }
+
+  .check-text { font-size: 13px; color: var(--text2); transition: color 0.15s; }
+  .check-item.checked .check-text { color: var(--text); }
+  .check-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* Coffee toggle */
+  .coffee-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .coffee-row:hover { border-color: var(--border2); }
+  .coffee-left { display: flex; align-items: center; gap: 10px; }
+  .coffee-icon {
+    font-size: 18px;
+    filter: grayscale(1);
+    transition: filter 0.2s;
+  }
+  .coffee-row.active .coffee-icon { filter: grayscale(0); }
+  .coffee-label { font-size: 13px; color: var(--text2); }
+  .coffee-row.active .coffee-label { color: var(--yellow); }
+  .coffee-sub { font-size: 11px; color: var(--text3); }
+
+  .toggle {
+    width: 36px; height: 20px;
+    background: var(--bg3);
+    border-radius: 10px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .coffee-row.active .toggle { background: var(--yellow); }
+  .toggle-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    position: absolute;
+    top: 3px; left: 3px;
+    transition: transform 0.2s;
+  }
+  .coffee-row.active .toggle-dot { transform: translateX(16px); }
+
+  /* Submit */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--green-dim);
+    border: 1px solid rgba(45,214,140,0.3);
+    border-radius: 10px;
+    color: var(--green);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .submit-btn:hover {
+    background: rgba(45,214,140,0.18);
+    border-color: rgba(45,214,140,0.5);
+  }
+  .submit-btn:active { transform: scale(0.99); }
+
+  /* Result panel */
+  .result {
+    margin-top: 24px;
+    border-radius: 12px;
+    padding: 24px;
+    display: none;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result.go { background: var(--green-dim); border: 1px solid rgba(45,214,140,0.25); }
+  .result.caution { background: var(--yellow-dim); border: 1px solid rgba(240,192,64,0.25); }
+  .result.reduce { background: var(--orange-dim); border: 1px solid rgba(240,128,64,0.25); }
+  .result.sit { background: var(--red-dim); border: 1px solid rgba(240,64,96,0.25); }
+
+  .result-mode {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .result.go .result-mode { color: var(--green); }
+  .result.caution .result-mode { color: var(--yellow); }
+  .result.reduce .result-mode { color: var(--orange); }
+  .result.sit .result-mode { color: var(--red); }
+
+  .result-headline {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+  .result.go .result-headline { color: var(--green); }
+  .result.caution .result-headline { color: var(--yellow); }
+  .result.reduce .result-headline { color: var(--orange); }
+  .result.sit .result-headline { color: var(--red); }
+
+  .result-body {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+
+  .result-rules {
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .result-rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  .rule-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .result.go .rule-dot { background: var(--green); }
+  .result.caution .rule-dot { background: var(--yellow); }
+  .result.reduce .rule-dot { background: var(--orange); }
+  .result.sit .rule-dot { background: var(--red); }
+
+  .scores-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .score-pill {
+    background: var(--bg2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .score-pill-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .score-pill-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: all 0.15s;
+    letter-spacing: 0.06em;
+  }
+  .reset-btn:hover { border-color: var(--border2); color: var(--text2); }
+
+  /* Progress bar for checks */
+  .checks-progress {
+    height: 2px;
+    background: var(--bg3);
+    border-radius: 1px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .checks-progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 1px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="date-line" id="dateLine">—</div>
+    <h1 class="title">Pre-market <span>state check</span></h1>
+    <p class="subtitle">Rate your state before the platform opens. Honest inputs only.</p>
+  </div>
+
+  <!-- State sliders -->
+  <div class="section">
+    <div class="section-label">Mental state</div>
+
+    <div class="slider-row" id="row-stress">
+      <div class="slider-top">
+        <div>
+          <div class="slider-name">Stress</div>
+          <div class="slider-desc">How much weight are you carrying right now?</div>
+        </div>
+        <div class="slider-val" id="val-stress">5</div>
+      </div>
+      <div class="slider-track">
+        <div class="slider-fill" id="fill-stress"></div>
+        <input type="range" min="1" max="10" value="5" id="slider-stress" oninput="updateSlider('stress')">
+      </div>
+      <div class="slider-labels"><span>1 — none</span><span>10 — max</span></div>
+      <div class="flag-inline" id="flag-stress"></div>
+    </div>
+
+    <div class="slider-row" id="row-energy">
+      <div class="slider-top">
+        <div>
+          <div class="slider-name">Energy</div>
+          <div class="slider-desc">Physical alertness and drive right now.</div>
+        </div>
+        <div class="slider-val" id="val-energy">5</div>
+      </div>
+      <div class="slider-track">
+        <div class="slider-fill" id="fill-energy"></div>
+        <input type="range" min="1" max="10" value="5" id="slider-energy" oninput="updateSlider('energy')">
+      </div>
+      <div class="slider-labels"><span>1 — drained</span><span>10 — wired</span></div>
+      <div class="flag-inline" id="flag-energy"></div>
+    </div>
+
+    <div class="slider-row" id="row-clarity">
+      <div class="slider-top">
+        <div>
+          <div class="slider-name">Clarity</div>
+          <div class="slider-desc">How clear is your plan and thinking right now?</div>
+        </div>
+        <div class="slider-val" id="val-clarity">5</div>
+      </div>
+      <div class="slider-track">
+        <div class="slider-fill" id="fill-clarity"></div>
+        <input type="range" min="1" max="10" value="5" id="slider-clarity" oninput="updateSlider('clarity')">
+      </div>
+      <div class="slider-labels"><span>1 — foggy</span><span>10 — sharp</span></div>
+      <div class="flag-inline" id="flag-clarity"></div>
+    </div>
+
+    <div class="slider-row" id="row-patience">
+      <div class="slider-top">
+        <div>
+          <div class="slider-name">Patience</div>
+          <div class="slider-desc">Can you wait for the right setup without forcing it?</div>
+        </div>
+        <div class="slider-val" id="val-patience">5</div>
+      </div>
+      <div class="slider-track">
+        <div class="slider-fill" id="fill-patience"></div>
+        <input type="range" min="1" max="10" value="5" id="slider-patience" oninput="updateSlider('patience')">
+      </div>
+      <div class="slider-labels"><span>1 — need to trade now</span><span>10 — can wait all day</span></div>
+      <div class="flag-inline" id="flag-patience"></div>
+    </div>
+
+  </div>
+
+  <!-- Coffee toggle -->
+  <div class="section">
+    <div class="section-label">Risk factors</div>
+    <div class="coffee-row" id="coffeeRow" onclick="toggleCoffee()">
+      <div class="coffee-left">
+        <span class="coffee-icon">☕</span>
+        <div>
+          <div class="coffee-label">Coffee before 9:00 AM CST</div>
+          <div class="coffee-sub">Peak stimulation hits at market open — risk multiplier</div>
+        </div>
+      </div>
+      <div class="toggle"><div class="toggle-dot"></div></div>
+    </div>
+  </div>
+
+  <!-- Preparation checkboxes -->
+  <div class="section">
+    <div class="section-label">Preparation</div>
+    <div class="checks-progress"><div class="checks-progress-fill" id="checkProgress"></div></div>
+    <div class="check-list">
+      <div class="check-item" onclick="toggleCheck(this)" data-key="research">
+        <div class="check-box"><div class="check-mark"></div></div>
+        <div>
+          <div class="check-text">Pre-market research done</div>
+          <div class="check-sub">News scan, overnight gaps, sector sentiment, any PR on your names</div>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)" data-key="gameplan">
+        <div class="check-box"><div class="check-mark"></div></div>
+        <div>
+          <div class="check-text">Preparation & Gameplan written</div>
+          <div class="check-sub">Watchlist, bias, levels, and one-line session goal</div>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)" data-key="exits">
+        <div class="check-box"><div class="check-mark"></div></div>
+        <div>
+          <div class="check-text">GTC exit orders set on overnight holds</div>
+          <div class="check-sub">Work for you in the first 30 min while you're in reduce-only mode</div>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)" data-key="levels">
+        <div class="check-box"><div class="check-mark"></div></div>
+        <div>
+          <div class="check-text">Key levels identified and alerts set</div>
+          <div class="check-sub">Know where you're entering before the open, not during</div>
+        </div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)" data-key="meditate">
+        <div class="check-box"><div class="check-mark"></div></div>
+        <div>
+          <div class="check-text">Meditated / breathing done</div>
+          <div class="check-sub">10 seconds minimum. Close the gap between acting and thinking.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <button class="submit-btn" onclick="evaluate()">→ Generate session directive</button>
+
+  <!-- Result -->
+  <div class="result" id="result">
+    <div class="result-mode" id="result-mode">—</div>
+    <div class="result-headline" id="result-headline">—</div>
+    <div class="scores-grid" id="scores-grid"></div>
+    <div class="result-body" id="result-body">—</div>
+    <div class="result-rules" id="result-rules"></div>
+    <button class="reset-btn" onclick="reset()">↺ Reset for new session</button>
+  </div>
+
+</div>
+
+<script>
+// ── Date ───────────────────────────────────────────────────────────────
+function getCST() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
+  const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+  const isDST = Math.max(jan, jul) !== now.getTimezoneOffset();
+  return new Date(utc + (isDST ? -5 : -6) * 3600000);
+}
+
+const cst = getCST();
+const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+document.getElementById('dateLine').textContent =
+  `${days[cst.getDay()]} · ${months[cst.getMonth()]} ${cst.getDate()}, ${cst.getFullYear()}`;
+
+// ── Slider logic ───────────────────────────────────────────────────────
+const sliderColors = {
+  stress:  { low: '#2dd68c', mid: '#f0c040', high: '#f04060', invert: true },
+  energy:  { low: '#f04060', mid: '#f0c040', high: '#2dd68c', invert: false },
+  clarity: { low: '#f04060', mid: '#f0c040', high: '#2dd68c', invert: false },
+  patience:{ low: '#f04060', mid: '#f0c040', high: '#2dd68c', invert: false },
+};
+
+const sliderFlags = {
+  stress: {
+    high: { text: '⚠ High stress — tilt risk elevated', cls: 'red', threshold: 7 },
+    low: null
+  },
+  energy: {
+    low: { text: '⚠ Low energy — impulsive shortcuts likely', cls: 'yellow', threshold: 3 },
+    high: { text: '⚠ Wired — early coffee? Slow down.', cls: 'yellow', thresholdHigh: 9 }
+  },
+  clarity: {
+    low: { text: '⚠ Foggy — no new positions today', cls: 'red', threshold: 3 },
+    high: null
+  },
+  patience: {
+    low: { text: '🚨 Low patience — reduce-only, no new entries', cls: 'red', threshold: 3 },
+    mid: { text: '⚠ Moderate patience — size down, wait for A+ setups', cls: 'yellow', thresholdMid: 5 },
+    high: null
+  }
+};
+
+function getColor(val, cfg) {
+  const t = (val - 1) / 9;
+  if (t < 0.5) {
+    return lerpColor(cfg.low, cfg.mid, t * 2);
+  } else {
+    return lerpColor(cfg.mid, cfg.high, (t - 0.5) * 2);
+  }
+}
+
+function lerpColor(a, b, t) {
+  const ar = parseInt(a.slice(1,3),16), ag = parseInt(a.slice(3,5),16), ab = parseInt(a.slice(5,7),16);
+  const br = parseInt(b.slice(1,3),16), bg = parseInt(b.slice(3,5),16), bb = parseInt(b.slice(5,7),16);
+  const r = Math.round(ar + (br-ar)*t).toString(16).padStart(2,'0');
+  const g = Math.round(ag + (bg-ag)*t).toString(16).padStart(2,'0');
+  const bx = Math.round(ab + (bb-ab)*t).toString(16).padStart(2,'0');
+  return `#${r}${g}${bx}`;
+}
+
+function updateSlider(name) {
+  const slider = document.getElementById('slider-' + name);
+  const val = parseInt(slider.value);
+  const pct = (val - 1) / 9 * 100;
+  const cfg = sliderColors[name];
+  const color = getColor(val, cfg);
+
+  document.getElementById('val-' + name).textContent = val;
+  document.getElementById('val-' + name).style.color = color;
+
+  const fill = document.getElementById('fill-' + name);
+  fill.style.width = pct + '%';
+  fill.style.background = color;
+
+  // Flags
+  const flagEl = document.getElementById('flag-' + name);
+  const flags = sliderFlags[name];
+  let flagText = '', flagCls = '';
+
+  if (name === 'stress' && val >= 7) {
+    flagText = flags.high.text; flagCls = flags.high.cls;
+  } else if (name === 'energy' && val <= 3) {
+    flagText = flags.low.text; flagCls = flags.low.cls;
+  } else if (name === 'energy' && val >= 9) {
+    flagText = flags.high.text; flagCls = flags.high.cls;
+  } else if (name === 'clarity' && val <= 3) {
+    flagText = flags.low.text; flagCls = flags.low.cls;
+  } else if (name === 'patience' && val <= 3) {
+    flagText = flags.low.text; flagCls = flags.low.cls;
+  } else if (name === 'patience' && val <= 5) {
+    flagText = flags.mid.text; flagCls = flags.mid.cls;
+  }
+
+  if (flagText) {
+    flagEl.textContent = flagText;
+    flagEl.className = 'flag-inline show ' + flagCls;
+  } else {
+    flagEl.className = 'flag-inline';
+  }
+}
+
+// Init sliders
+['stress','energy','clarity','patience'].forEach(updateSlider);
+
+// ── Coffee toggle ──────────────────────────────────────────────────────
+let coffeeOn = false;
+function toggleCoffee() {
+  coffeeOn = !coffeeOn;
+  document.getElementById('coffeeRow').classList.toggle('active', coffeeOn);
+}
+
+// ── Checkboxes ─────────────────────────────────────────────────────────
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  updateCheckProgress();
+}
+
+function updateCheckProgress() {
+  const total = document.querySelectorAll('.check-item').length;
+  const done = document.querySelectorAll('.check-item.checked').length;
+  document.getElementById('checkProgress').style.width = (done / total * 100) + '%';
+}
+
+// ── Evaluate ───────────────────────────────────────────────────────────
+function evaluate() {
+  const stress = parseInt(document.getElementById('slider-stress').value);
+  const energy = parseInt(document.getElementById('slider-energy').value);
+  const clarity = parseInt(document.getElementById('slider-clarity').value);
+  const patience = parseInt(document.getElementById('slider-patience').value);
+
+  const checks = {
+    research: !!document.querySelector('[data-key="research"].checked'),
+    gameplan: !!document.querySelector('[data-key="gameplan"].checked'),
+    exits: !!document.querySelector('[data-key="exits"].checked'),
+    levels: !!document.querySelector('[data-key="levels"].checked'),
+    meditate: !!document.querySelector('[data-key="meditate"].checked'),
+  };
+  const checkCount = Object.values(checks).filter(Boolean).length;
+
+  // Score flags
+  const flags = [];
+  const rules = [];
+
+  if (stress >= 8) flags.push({ sev: 'critical', msg: 'Stress critical — tilt/revenge trading risk' });
+  else if (stress >= 7) flags.push({ sev: 'major', msg: 'Stress elevated — oversizing risk' });
+
+  if (energy <= 2) flags.push({ sev: 'critical', msg: 'Energy depleted — impulsive shortcutting likely' });
+  else if (energy <= 3) flags.push({ sev: 'major', msg: 'Low energy — skip complex setups today' });
+  else if (energy >= 9 || coffeeOn) flags.push({ sev: 'minor', msg: coffeeOn ? 'Early coffee — peak stimulation at open, slow down' : 'Very high energy — euphoria risk, size down' });
+
+  if (clarity <= 3) flags.push({ sev: 'critical', msg: 'Clarity low — no new positions, exits only' });
+  else if (clarity <= 5) flags.push({ sev: 'major', msg: 'Clarity moderate — stick to watchlist only, no adapting' });
+
+  if (patience <= 2) flags.push({ sev: 'critical', msg: 'Patience critical — force trading guaranteed today' });
+  else if (patience <= 4) flags.push({ sev: 'major', msg: 'Low patience — wait for volume confirmation before any entry' });
+  else if (patience <= 5) flags.push({ sev: 'minor', msg: 'Moderate patience — raise your setup quality bar today' });
+
+  if (!checks.research) flags.push({ sev: 'major', msg: 'No research — trading blind on news and PR' });
+  if (!checks.gameplan) flags.push({ sev: 'major', msg: 'No gameplan written — improvisation default' });
+  if (!checks.exits) flags.push({ sev: 'minor', msg: 'GTC exits not set — first 30 min reactive mode' });
+  if (!checks.meditate) flags.push({ sev: 'minor', msg: 'No reset done — acting/thinking gap not closed' });
+
+  // Determine mode
+  const critical = flags.filter(f => f.sev === 'critical').length;
+  const major = flags.filter(f => f.sev === 'major').length;
+  const minor = flags.filter(f => f.sev === 'minor').length;
+
+  let mode, headline, body, cls;
+
+  if (critical >= 1 || (major >= 3)) {
+    mode = 'SIT ON HANDS';
+    cls = 'sit';
+    headline = 'Not a day to trade. Protect the account.';
+    body = `Multiple critical flags detected. The risk of a damaging session today is high — not because of the market, but because of your current state. The best trade today is no trade. Review open positions, set exits, step away.`;
+    rules.push('Exits only — no new opening positions under any circumstances');
+    rules.push('If you feel the urge to enter, wait 10 minutes. If still there, wait another 10.');
+    rules.push('Close anything that\'s giving you anxiety — a clear book is a clear head');
+  } else if (critical === 0 && major >= 2) {
+    mode = 'REDUCE ONLY';
+    cls = 'reduce';
+    headline = 'Reduce exposure. Don\'t add today.';
+    body = `Your state has meaningful flags that will make adding new positions risky. Focus on managing what you have — take profits on anything up 30%+, exit anything approaching your stop. No new entries regardless of how good the setup looks.`;
+    rules.push('No new opening positions today');
+    rules.push('Take profits on anything up 30%+ — don\'t let them reverse');
+    rules.push('One trade at a time, full attention, no multitasking');
+    rules.push('10:00 EST minimum before any action');
+  } else if (major === 1 || minor >= 2 || coffeeOn) {
+    mode = 'CAUTION';
+    cls = 'caution';
+    headline = 'Proceed carefully. Raise the bar.';
+    body = `Conditions are tradeable but not clean. Stick strictly to your watchlist, max 1 contract per entry, wait for volume confirmation. One flag is manageable — don't let it compound with early entries or oversizing.`;
+    rules.push('Watchlist names only — no adapting or substituting today');
+    rules.push('Max 1 contract on every entry, no exceptions');
+    rules.push('Wait for volume confirmation before entry — no pencil dick tape');
+    rules.push('10:00–11:00 EST window, nothing before');
+    if (coffeeOn) rules.push('Coffee early noted — 15 extra minutes before first entry');
+  } else {
+    mode = 'CLEAR TO TRADE';
+    cls = 'go';
+    headline = 'Conditions look good. Execute the plan.';
+    body = `State is solid. Preparation is ${checkCount >= 4 ? 'complete' : 'mostly done'}. Stick to the plan — watchlist names, right window, right size. Don't do too much today. Your edge shows up when you're selective, not active.`;
+    rules.push('Optimal window: 10:00–11:00 EST');
+    rules.push('Take profit at 30%+ on any position in high vol — don\'t hold through reversals');
+    rules.push('If it\'s not on the watchlist, it doesn\'t exist today');
+    rules.push('One good trade is enough. Don\'t do too much.');
+  }
+
+  // Render
+  const resultEl = document.getElementById('result');
+  resultEl.className = 'result ' + cls;
+  resultEl.style.display = 'block';
+
+  document.getElementById('result-mode').textContent = mode;
+  document.getElementById('result-headline').textContent = headline;
+  document.getElementById('result-body').textContent = body;
+
+  // Scores
+  const scoresHtml = [
+    { label: 'Stress', val: stress, invert: true },
+    { label: 'Energy', val: energy, invert: false },
+    { label: 'Clarity', val: clarity, invert: false },
+    { label: 'Patience', val: patience, invert: false },
+  ].map(s => {
+    const pct = s.invert ? (10 - s.val) / 9 : (s.val - 1) / 9;
+    const color = lerpColor('#f04060', '#2dd68c', pct);
+    return `<div class="score-pill">
+      <div class="score-pill-label">${s.label}</div>
+      <div class="score-pill-val" style="color:${color}">${s.val}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('scores-grid').innerHTML = scoresHtml;
+
+  // Rules
+  const rulesEl = document.getElementById('result-rules');
+  rulesEl.innerHTML = rules.map(r =>
+    `<div class="result-rule"><div class="rule-dot"></div><span>${r}</span></div>`
+  ).join('');
+
+  // Flags if any
+  if (flags.length > 0) {
+    rulesEl.innerHTML += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.07);">` +
+      flags.map(f =>
+        `<div class="result-rule" style="margin-bottom:4px;">
+          <div class="rule-dot" style="background:${f.sev==='critical'?'var(--red)':f.sev==='major'?'var(--orange)':'var(--yellow)'}"></div>
+          <span style="color:${f.sev==='critical'?'var(--red)':f.sev==='major'?'var(--orange)':'var(--text3)'}">${f.msg}</span>
+        </div>`
+      ).join('') + `</div>`;
+  }
+
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function reset() {
+  ['stress','energy','clarity','patience'].forEach(name => {
+    document.getElementById('slider-' + name).value = 5;
+    updateSlider(name);
+  });
+  document.querySelectorAll('.check-item.checked').forEach(el => el.classList.remove('checked'));
+  coffeeOn = false;
+  document.getElementById('coffeeRow').classList.remove('active');
+  updateCheckProgress();
+  document.getElementById('result').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
