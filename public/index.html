@@ -109,6 +109,11 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
 .submit-btn{width:100%;padding:15px;background:var(--gdim);border:1px solid rgba(0,201,122,0.3);border-radius:8px;color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin:10px 0;}
 .submit-btn:hover{background:rgba(0,201,122,0.2);}
 
+/* Collapsible prep section */
+.prep-section{transition:all .4s ease;overflow:hidden;}
+.prep-section.collapsed{max-height:0;opacity:0;pointer-events:none;margin:0;}
+.prep-section.expanded{max-height:2000px;opacity:1;}
+
 /* Directive result */
 .directive{border-radius:8px;padding:16px;display:none;animation:slideUp .3s ease;margin-top:8px;}
 @keyframes slideUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
@@ -298,6 +303,9 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
     <div class="flag-inline" id="flag-patience"></div>
   </div>
 
+  <!-- Collapsible prep section -->
+  <div class="prep-section expanded" id="prepSection">
+
   <!-- Coffee -->
   <div class="coffee" id="coffeeRow" onclick="toggleCoffee()">
     <div class="coffee-l">
@@ -331,6 +339,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
     <div class="cbox"><div class="cmark"></div></div>
     <div><div class="ctext">Meditated / breathing done</div><div class="csub">10 seconds. Build the space between impulse and action — natural restraint.</div></div>
   </div>
+
+  </div><!-- end prep-section -->
 
   <button class="submit-btn" onclick="runEvaluate()">→ Generate session directive</button>
 
@@ -694,6 +704,9 @@ function runEvaluate(){
   const scores=[{l:'Stress',v:stress,inv:true},{l:'Energy',v:energy,inv:false},{l:'Clarity',v:clarity,inv:false},{l:'Patience',v:patience,inv:false}];
   document.getElementById('dir-scores').innerHTML=scores.map(s=>{const p=s.inv?(10-s.v)/9:(s.v-1)/9;const c=lerp('#f04060','#2dd68c',p);return`<div class="spill"><div class="spill-l">${s.l}</div><div class="spill-v" style="color:${c}">${s.v}</div></div>`;}).join('');
   document.getElementById('dir-rules').innerHTML=rules.map(r=>`<div class="dir-rule"><div class="rdot"></div><span>${r}</span></div>`).join('')+(flags.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);">${flags.map(f=>`<div class="dir-rule" style="margin-bottom:3px;"><div class="rdot" style="background:${f.sev==='critical'?'var(--red)':f.sev==='major'?'var(--orange)':'var(--text3)'}"></div><span style="color:${f.sev==='critical'?'var(--red)':f.sev==='major'?'var(--orange)':'var(--text3)'}">${f.msg}</span></div>`).join('')}</div>`:'');
+  // Collapse prep section
+  document.getElementById('prepSection').className='prep-section collapsed';
+  dir.style.display='block';
   dir.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -703,6 +716,8 @@ function resetChecklist(){
   coffeeOn=false;document.getElementById('coffeeRow').classList.remove('active');
   document.getElementById('checkProg').style.width='0%';
   document.getElementById('directive').style.display='none';
+  // Expand prep section
+  document.getElementById('prepSection').className='prep-section expanded';
 }
 
 // ── Init ───────────────────────────────────────────────────────────────
