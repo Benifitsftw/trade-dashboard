@@ -707,6 +707,10 @@ function runEvaluate(){
   // Collapse prep section and button
   document.getElementById('prepSection').className='prep-section collapsed';
   document.getElementById('submitBtn').style.display='none';
+  // Freeze sliders and inputs
+  document.querySelectorAll('input[type=range]').forEach(el=>{el.disabled=true;el.style.opacity='.4';});
+  document.getElementById('coffeeRow').style.pointerEvents='none';
+  document.querySelectorAll('.citem').forEach(el=>{el.style.pointerEvents='none';});
   dir.style.display='block';
   dir.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -720,6 +724,10 @@ function resetChecklist(){
   // Expand prep section and button
   document.getElementById('prepSection').className='prep-section expanded';
   document.getElementById('submitBtn').style.display='block';
+  // Unfreeze sliders and inputs
+  document.querySelectorAll('input[type=range]').forEach(el=>{el.disabled=false;el.style.opacity='1';});
+  document.getElementById('coffeeRow').style.pointerEvents='';
+  document.querySelectorAll('.citem').forEach(el=>{el.style.pointerEvents='';}); 
 }
 
 // ── Init ───────────────────────────────────────────────────────────────
