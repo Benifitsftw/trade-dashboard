@@ -445,17 +445,20 @@ function applyRisk(rtbp, equity, cash, mktVal, ts) {
 
 // ── Positions ──────────────────────────────────────────────────────────
 function renderPositions(positions, orders = []) {
-  // Build lookup: symbol -> list of GTC STC orders
-  // Normalize symbol by stripping .MX suffix for matching
-  const normalize = s => s.replace('.MX','').replace('.TO','');
+  // Normalize symbol for matching - strip exchange suffixes and spaces
+  const normalize = s => (s || '').replace('.MX','').replace('.TO','').replace(/\s/g,'').toUpperCase();
+  
+  // Debug
+  console.log('Orders received:', orders.map(o => o.symbol));
+  console.log('Positions:', positions.map(p => p.symbol));
+  
   const gtcMap = {};
   orders.forEach(o => {
-    if (o.side === 'STC' && o.timeInForce === 'GoodTillCanceled') {
-      const key = normalize(o.symbol);
-      if (!gtcMap[key]) gtcMap[key] = [];
-      gtcMap[key].push(o);
-    }
+    const key = normalize(o.symbol);
+    if (!gtcMap[key]) gtcMap[key] = [];
+    gtcMap[key].push(o);
   });
+  console.log('GTC map keys:', Object.keys(gtcMap));
   const tbody = document.getElementById('posBody');
   if (!positions || positions.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text3);font-size:12px;padding:12px 0;">No open positions</td></tr>';
@@ -492,10 +495,17 @@ function renderPositions(positions, orders = []) {
       flag = 'hold'; flagCls = 'neu';
     }
 
-    // GTC override — show as secondary tag
-    const gtcTag = hasGTC
-      ? `<span class="pflag ok" style="margin-left:4px;">GTC $${gtcPrice}</span>`
-      : `<span class="pflag danger" style="margin-left:4px;">⚠ No GTC</span>`;
+    // GTC tag with % distance from current price
+    let gtcTag = '';
+    if (hasGTC && gtcPrice) {
+      const pctFromCurrent = p.currentPrice > 0 ? ((gtcPrice - p.currentPrice) / p.currentPrice * 100) : 0;
+      const pctR = Math.round(pctFromCurrent * 10) / 10;
+      const gtcCls = pctR >= 30 ? 'ok' : pctR >= 15 ? 'ok' : pctR >= 0 ? 'warn' : 'danger';
+      const sign = pctR >= 0 ? '+' : '';
+      gtcTag = `<span class="pflag ${gtcCls}" style="margin-left:4px;">GTC $${gtcPrice} (${sign}${pctR}%)</span>`;
+    } else {
+      gtcTag = `<span class="pflag danger" style="margin-left:4px;">⚠ No GTC</span>`;
+    }
 
     // Clean symbol display
     const sym = p.symbol.replace(/(\w+)(\d{2})(\w{3})(\d{2})([CP])([\d.]+)/,
