@@ -446,11 +446,14 @@ function applyRisk(rtbp, equity, cash, mktVal, ts) {
 // ── Positions ──────────────────────────────────────────────────────────
 function renderPositions(positions, orders = []) {
   // Build lookup: symbol -> list of GTC STC orders
+  // Normalize symbol by stripping .MX suffix for matching
+  const normalize = s => s.replace('.MX','').replace('.TO','');
   const gtcMap = {};
   orders.forEach(o => {
     if (o.side === 'STC' && o.timeInForce === 'GoodTillCanceled') {
-      if (!gtcMap[o.symbol]) gtcMap[o.symbol] = [];
-      gtcMap[o.symbol].push(o);
+      const key = normalize(o.symbol);
+      if (!gtcMap[key]) gtcMap[key] = [];
+      gtcMap[key].push(o);
     }
   });
   const tbody = document.getElementById('posBody');
@@ -469,7 +472,7 @@ function renderPositions(positions, orders = []) {
     const absPct = Math.abs(p.openPLPct);
 
     // GTC check
-    const symOrders = gtcMap[p.symbol] || [];
+    const symOrders = gtcMap[normalize(p.symbol)] || [];
     const hasGTC = symOrders.length > 0;
     const gtcPrice = hasGTC ? symOrders[0].limitPrice : null;
 
