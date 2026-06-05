@@ -187,12 +187,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="bar-marker" style="left:33%;background:var(--green);"></div>
       <div class="bar-fill" id="barFill" style="width:0%;background:var(--red);"></div>
     </div>
-    <div class="bar-labels">
-      <span>0%</span>
-      <span style="color:var(--red)">12.5% Heavy</span>
-      <span style="color:var(--yellow)">25% Mod</span>
-      <span style="color:var(--green)">33% Light</span>
-      <span>100%</span>
+    <div style="position:relative;height:16px;margin-top:4px;">
+      <span style="position:absolute;left:0;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);">0%</span>
+      <span style="position:absolute;left:12.5%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--red);">12.5%</span>
+      <span style="position:absolute;left:25%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--yellow);">25%</span>
+      <span style="position:absolute;left:33%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--green);">33%</span>
+      <span style="position:absolute;right:0;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);">100%</span>
     </div>
     <div class="cash-stats">
       <div><div class="cstat-label">RTBP</div><div class="cstat-val" id="statRtbp">$—</div></div>
