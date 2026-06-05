@@ -448,7 +448,7 @@ function renderPositions(positions, orders = []) {
   // Build lookup: symbol -> list of GTC STC orders
   const gtcMap = {};
   orders.forEach(o => {
-    if ((o.action === 'Sell' || o.action === 'STC') && o.timeInForce === 'GoodTillCanceled') {
+    if (o.side === 'STC' && o.timeInForce === 'GoodTillCanceled') {
       if (!gtcMap[o.symbol]) gtcMap[o.symbol] = [];
       gtcMap[o.symbol].push(o);
     }
