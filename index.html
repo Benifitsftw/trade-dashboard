@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Discipline</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080a;--bg1:#0f0f12;--bg2:#151518;--bg3:#1c1c20;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --text:#eeeef2;--text2:#8080a0;--text3:#404055;
+  --green:#00c97a;--gdim:rgba(0,201,122,0.12);--gborder:rgba(0,201,122,0.25);
+  --yellow:#f0b429;--ydim:rgba(240,180,41,0.12);--yborder:rgba(240,180,41,0.25);
+  --red:#f04060;--rdim:rgba(240,64,96,0.12);--rborder:rgba(240,64,96,0.25);
+  --orange:#f08040;--odim:rgba(240,128,64,0.12);
+  --blue:#4d9fff;--bdim:rgba(77,159,255,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.35;pointer-events:none;z-index:0;}
+
+/* Layout */
+.outer{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:0 20px 60px;}
+
+/* Shared header - full width */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 0 16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.hdr-left{display:flex;align-items:center;gap:12px;}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:glow 2s ease-in-out infinite;}
+@keyframes glow{0%,100%{opacity:1;box-shadow:0 0 10px var(--green);}50%{opacity:.5;box-shadow:0 0 4px var(--green);}}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.15em;text-transform:uppercase;}
+.hdr-center{display:flex;align-items:center;gap:24px;}
+.hdr-clock{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:500;color:var(--text);}
+.hdr-date{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.08em;}
+.hdr-right{display:flex;align-items:center;gap:16px;}
+.sync-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);}
+.sync-tag.live{color:var(--green);}
+.sync-tag.err{color:var(--red);}
+
+/* Window banner - full width */
+.banner{border-radius:8px;padding:11px 18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;transition:all .3s;}
+.banner.go{background:var(--gdim);border:1px solid var(--gborder);}
+.banner.stop{background:var(--rdim);border:1px solid var(--rborder);}
+.banner.off{background:var(--bg2);border:1px solid var(--border);}
+.btext{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.04em;}
+.banner.go .btext{color:var(--green);}
+.banner.stop .btext{color:var(--red);}
+.banner.off .btext{color:var(--text2);}
+.bsub{font-size:11px;color:var(--text2);margin-top:2px;}
+.bbadge{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;padding:3px 10px;border-radius:999px;letter-spacing:.08em;}
+.bbadge.go{background:var(--gborder);color:var(--green);}
+.bbadge.stop{background:var(--rborder);color:var(--red);}
+.bbadge.off{background:var(--bg3);color:var(--text3);}
+
+/* Two column layout */
+.cols{display:grid;grid-template-columns:420px 1fr;gap:20px;align-items:start;}
+
+/* ═══ LEFT — Checklist ═══ */
+.col-left{}
+
+/* Slider rows */
+.srow{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:13px 16px;margin-bottom:8px;transition:border-color .2s;}
+.srow:focus-within{border-color:var(--border2);}
+.stop-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.sname{font-size:13px;font-weight:500;color:var(--text);}
+.sdesc{font-size:10px;color:var(--text3);margin-top:1px;}
+.sval{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:500;color:var(--text);min-width:24px;text-align:right;transition:color .2s;}
+.strack{position:relative;height:4px;margin:2px 0 6px;}
+.sfill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;transition:width .1s,background .2s;pointer-events:none;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--bg3);border-radius:2px;outline:none;background:transparent;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--text);cursor:pointer;border:2px solid var(--bg1);transition:transform .15s;}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
+.slabels{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);}
+.flag-inline{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;margin-top:5px;opacity:0;transform:translateY(-3px);transition:opacity .2s,transform .2s;}
+.flag-inline.show{opacity:1;transform:translateY(0);}
+.flag-inline.red{background:var(--rdim);color:var(--red);}
+.flag-inline.yellow{background:var(--ydim);color:var(--yellow);}
+.flag-inline.green{background:var(--gdim);color:var(--green);}
+
+/* Coffee toggle */
+.coffee{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:8px;transition:border-color .15s;}
+.coffee:hover{border-color:var(--border2);}
+.coffee-l{display:flex;align-items:center;gap:10px;}
+.coffee-icon{font-size:16px;filter:grayscale(1);transition:filter .2s;}
+.coffee.active .coffee-icon{filter:grayscale(0);}
+.coffee-label{font-size:12px;color:var(--text2);}
+.coffee.active .coffee-label{color:var(--yellow);}
+.coffee-sub{font-size:10px;color:var(--text3);}
+.tog{width:32px;height:18px;background:var(--bg3);border-radius:9px;position:relative;transition:background .2s;flex-shrink:0;}
+.coffee.active .tog{background:var(--yellow);}
+.tog-dot{width:12px;height:12px;border-radius:50%;background:var(--text);position:absolute;top:3px;left:3px;transition:transform .2s;}
+.coffee.active .tog-dot{transform:translateX(14px);}
+
+/* Checkboxes */
+.check-prog{height:2px;background:var(--bg3);border-radius:1px;margin-bottom:10px;overflow:hidden;}
+.check-prog-fill{height:100%;background:var(--green);border-radius:1px;transition:width .3s;}
+.citem{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:6px;transition:border-color .15s,background .15s;}
+.citem:hover{border-color:var(--border2);}
+.citem.checked{border-color:rgba(0,201,122,0.3);background:rgba(0,201,122,0.04);}
+.cbox{width:15px;height:15px;border-radius:3px;border:1.5px solid var(--text3);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.citem.checked .cbox{background:var(--green);border-color:var(--green);}
+.cmark{width:8px;height:6px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px);opacity:0;transition:opacity .1s;}
+.citem.checked .cmark{opacity:1;}
+.ctext{font-size:13px;color:var(--text2);transition:color .15s;line-height:1.4;}
+.citem.checked .ctext{color:var(--text);}
+.csub{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* Submit */
+.submit-btn{width:100%;padding:13px;background:var(--gdim);border:1px solid rgba(0,201,122,0.3);border-radius:8px;color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin:10px 0;}
+.submit-btn:hover{background:rgba(0,201,122,0.2);}
+
+/* Directive result */
+.directive{border-radius:8px;padding:16px;display:none;animation:slideUp .3s ease;margin-top:8px;}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.directive.go{background:var(--gdim);border:1px solid rgba(0,201,122,0.25);}
+.directive.caution{background:var(--ydim);border:1px solid rgba(240,180,41,0.25);}
+.directive.reduce{background:var(--odim);border:1px solid rgba(240,128,64,0.25);}
+.directive.sit{background:var(--rdim);border:1px solid rgba(240,64,96,0.25);}
+.dir-mode{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px;}
+.directive.go .dir-mode{color:var(--green);}
+.directive.caution .dir-mode{color:var(--yellow);}
+.directive.reduce .dir-mode{color:var(--orange);}
+.directive.sit .dir-mode{color:var(--red);}
+.dir-headline{font-size:17px;font-weight:500;margin-bottom:8px;line-height:1.3;}
+.directive.go .dir-headline{color:var(--green);}
+.directive.caution .dir-headline{color:var(--yellow);}
+.directive.reduce .dir-headline{color:var(--orange);}
+.directive.sit .dir-headline{color:var(--red);}
+.dir-body{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;}
+.dir-rules{border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:5px;}
+.dir-rule{display:flex;align-items:flex-start;gap:7px;font-size:11px;color:var(--text2);line-height:1.4;}
+.rdot{width:4px;height:4px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.directive.go .rdot{background:var(--green);}
+.directive.caution .rdot{background:var(--yellow);}
+.directive.reduce .rdot{background:var(--orange);}
+.directive.sit .rdot{background:var(--red);}
+.scores-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.spill{background:var(--bg2);border-radius:6px;padding:7px 8px;text-align:center;}
+.spill-l{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+.spill-v{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500;}
+.reset-btn{background:transparent;border:1px solid var(--border);border-radius:4px;padding:7px 14px;color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;transition:all .15s;margin-top:10px;letter-spacing:.05em;}
+.reset-btn:hover{border-color:var(--border2);color:var(--text2);}
+
+/* ═══ RIGHT — Dashboard ═══ */
+.col-right{}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:12px 14px;transition:border-color .3s,background .3s;}
+.card.g{border-color:var(--gborder);background:linear-gradient(135deg,var(--bg1),var(--gdim));}
+.card.y{border-color:var(--yborder);background:linear-gradient(135deg,var(--bg1),var(--ydim));}
+.card.r{border-color:var(--rborder);background:linear-gradient(135deg,var(--bg1),var(--rdim));}
+.clabel{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.cval{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;line-height:1;margin-bottom:3px;}
+.cval.g{color:var(--green);}
+.cval.y{color:var(--yellow);}
+.cval.r{color:var(--red);}
+.cval.n{color:var(--text);}
+.csub{font-size:10px;color:var(--text2);line-height:1.4;}
+
+/* Panel */
+.panel{background:var(--bg1);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px;}
+.phdr{padding:9px 14px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;}
+.ptitle{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;}
+.pbadge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;border-radius:999px;font-weight:500;}
+.pbody{padding:10px 14px;}
+
+/* Cash bar */
+.bar-track{background:var(--bg3);border-radius:3px;height:5px;position:relative;overflow:hidden;margin:8px 0 4px;}
+.bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1),background .3s;}
+.bar-m{position:absolute;top:0;bottom:0;width:1px;opacity:.4;}
+.bar-labels{position:relative;height:14px;margin-top:3px;}
+.bar-labels span{position:absolute;font-family:'IBM Plex Mono',monospace;font-size:8px;}
+.cash-stats{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;}
+.cstat-l{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+.cstat-v{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--text);}
+
+/* Manual */
+.input-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+.ig{display:flex;flex-direction:column;gap:4px;}
+.il{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;}
+.ifield{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:7px 9px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;width:100%;}
+.ifield:focus{border-color:var(--blue);}
+.ibtn{background:transparent;border:1px solid var(--border2);border-radius:4px;padding:6px 14px;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;transition:all .15s;}
+.ibtn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* Positions table */
+.ptable{width:100%;border-collapse:collapse;}
+.ptable th{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:500;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;text-align:left;padding:0 8px 7px 0;border-bottom:1px solid var(--border);}
+.ptable th:last-child{text-align:right;padding-right:0;}
+.ptable td{padding:7px 8px 7px 0;border-bottom:.5px solid var(--border);font-size:12px;vertical-align:middle;}
+.ptable td:last-child{text-align:right;padding-right:0;}
+.ptable tr:last-child td{border-bottom:none;}
+.psym{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--text);}
+.pdet{font-size:9px;color:var(--text3);margin-top:1px;}
+.pflag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:999px;font-weight:500;font-family:'IBM Plex Mono',monospace;}
+.pflag.warn{background:var(--ydim);color:var(--yellow);}
+.pflag.danger{background:var(--rdim);color:var(--red);}
+.pflag.ok{background:var(--gdim);color:var(--green);}
+.pflag.neu{background:var(--bg3);color:var(--text3);}
+
+/* Rules */
+.ritem{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:.5px solid var(--border);}
+.ritem:last-child{border-bottom:none;}
+.rcheck{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--text3);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:8px;transition:all .2s;}
+.rcheck.pass{border-color:var(--green);background:var(--gdim);color:var(--green);}
+.rcheck.fail{border-color:var(--red);background:var(--rdim);color:var(--red);}
+.rtext{font-size:12px;color:var(--text2);line-height:1.4;flex:1;}
+.rtext strong{color:var(--text);font-weight:500;}
+.div{height:1px;background:var(--border);margin:10px 0;}
+
+/* Section label */
+.slabel{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:9px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);z-index:100;transform:translateY(14px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="outer">
+
+<!-- Shared header -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="pulse"></div>
+    <span class="logo">Trade Discipline</span>
+  </div>
+  <div class="hdr-center">
+    <div>
+      <div class="hdr-clock" id="clockVal">--:--:--</div>
+      <div class="hdr-date" id="dateVal">—</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="sync-tag" id="syncTag">Connecting...</span>
+    <span class="sync-tag" id="syncTime">—</span>
+  </div>
+</div>
+
+<!-- Window banner -->
+<div class="banner off" id="banner">
+  <div>
+    <div class="btext" id="bannerText">Loading...</div>
+    <div class="bsub" id="bannerSub"></div>
+  </div>
+  <span class="bbadge off" id="bannerBadge">—</span>
+</div>
+
+<!-- Two columns -->
+<div class="cols">
+
+<!-- ═══ LEFT: Pre-market checklist ═══ -->
+<div class="col-left">
+  <div class="slabel" style="margin-bottom:12px;">Pre-market · state check</div>
+
+  <!-- Sliders -->
+  <div class="srow" id="row-stress">
+    <div class="stop-row">
+      <div><div class="sname">Stress</div><div class="sdesc">How much weight are you carrying right now?</div></div>
+      <div class="sval" id="val-stress">5</div>
+    </div>
+    <div class="strack"><div class="sfill" id="fill-stress"></div><input type="range" min="1" max="10" value="5" id="slider-stress" oninput="updateSlider('stress')"></div>
+    <div class="slabels"><span>1 — none</span><span>10 — max</span></div>
+    <div class="flag-inline" id="flag-stress"></div>
+  </div>
+
+  <div class="srow" id="row-energy">
+    <div class="stop-row">
+      <div><div class="sname">Energy</div><div class="sdesc">Physical alertness and drive right now.</div></div>
+      <div class="sval" id="val-energy">5</div>
+    </div>
+    <div class="strack"><div class="sfill" id="fill-energy"></div><input type="range" min="1" max="10" value="5" id="slider-energy" oninput="updateSlider('energy')"></div>
+    <div class="slabels"><span>1 — drained</span><span>10 — wired</span></div>
+    <div class="flag-inline" id="flag-energy"></div>
+  </div>
+
+  <div class="srow" id="row-clarity">
+    <div class="stop-row">
+      <div><div class="sname">Clarity</div><div class="sdesc">How clear is your plan and thinking right now?</div></div>
+      <div class="sval" id="val-clarity">5</div>
+    </div>
+    <div class="strack"><div class="sfill" id="fill-clarity"></div><input type="range" min="1" max="10" value="5" id="slider-clarity" oninput="updateSlider('clarity')"></div>
+    <div class="slabels"><span>1 — foggy</span><span>10 — sharp</span></div>
+    <div class="flag-inline" id="flag-clarity"></div>
+  </div>
+
+  <div class="srow" id="row-patience">
+    <div class="stop-row">
+      <div><div class="sname">Patience</div><div class="sdesc">Can you wait for the right setup without forcing it?</div></div>
+      <div class="sval" id="val-patience">5</div>
+    </div>
+    <div class="strack"><div class="sfill" id="fill-patience"></div><input type="range" min="1" max="10" value="5" id="slider-patience" oninput="updateSlider('patience')"></div>
+    <div class="slabels"><span>1 — need to trade now</span><span>10 — can wait all day</span></div>
+    <div class="flag-inline" id="flag-patience"></div>
+  </div>
+
+  <!-- Coffee -->
+  <div class="coffee" id="coffeeRow" onclick="toggleCoffee()">
+    <div class="coffee-l">
+      <span class="coffee-icon">☕</span>
+      <div><div class="coffee-label">Coffee before 9:00 AM CST</div><div class="coffee-sub">Peak stimulation hits at open — risk multiplier</div></div>
+    </div>
+    <div class="tog"><div class="tog-dot"></div></div>
+  </div>
+
+  <!-- Checkboxes -->
+  <div class="slabel" style="margin-top:14px;">Preparation</div>
+  <div class="check-prog"><div class="check-prog-fill" id="checkProg"></div></div>
+
+  <div class="citem" onclick="toggleCheck(this)" data-key="research">
+    <div class="cbox"><div class="cmark"></div></div>
+    <div><div class="ctext">Pre-market research done</div><div class="csub">News scan, overnight gaps, sector sentiment, any PR on your names</div></div>
+  </div>
+  <div class="citem" onclick="toggleCheck(this)" data-key="gameplan">
+    <div class="cbox"><div class="cmark"></div></div>
+    <div><div class="ctext">Preparation & Gameplan written</div><div class="csub">Watchlist, bias, levels, and one-line session goal</div></div>
+  </div>
+  <div class="citem" onclick="toggleCheck(this)" data-key="exits">
+    <div class="cbox"><div class="cmark"></div></div>
+    <div><div class="ctext">GTC exit orders set on overnight holds</div><div class="csub">Work for you in the first 30 min while you're in reduce-only mode</div></div>
+  </div>
+  <div class="citem" onclick="toggleCheck(this)" data-key="levels">
+    <div class="cbox"><div class="cmark"></div></div>
+    <div><div class="ctext">Key levels identified and alerts set</div><div class="csub">Know your entries before open, not during</div></div>
+  </div>
+  <div class="citem" onclick="toggleCheck(this)" data-key="meditate">
+    <div class="cbox"><div class="cmark"></div></div>
+    <div><div class="ctext">Meditated / breathing done</div><div class="csub">10 seconds. Build the space between impulse and action — natural restraint.</div></div>
+  </div>
+
+  <button class="submit-btn" onclick="runEvaluate()">→ Generate session directive</button>
+
+  <!-- Directive result -->
+  <div class="directive" id="directive">
+    <div class="dir-mode" id="dir-mode">—</div>
+    <div class="dir-headline" id="dir-headline">—</div>
+    <div class="scores-row" id="dir-scores"></div>
+    <div class="dir-body" id="dir-body">—</div>
+    <div class="dir-rules" id="dir-rules"></div>
+    <button class="reset-btn" onclick="resetChecklist()">↺ Reset</button>
+  </div>
+</div>
+
+<!-- ═══ RIGHT: Live dashboard ═══ -->
+<div class="col-right">
+
+  <!-- 2x2 cards -->
+  <div class="cards">
+    <div class="card" id="cashCard">
+      <div class="clabel">Cash remaining</div>
+      <div class="cval n" id="cashPct">--%</div>
+      <div class="csub" id="cashSub">Waiting for sync...</div>
+    </div>
+    <div class="card" id="riskCard">
+      <div class="clabel">Overnight risk</div>
+      <div class="cval n" id="riskVal">—</div>
+      <div class="csub" id="riskSub">—</div>
+    </div>
+    <div class="card" id="rtbpCard">
+      <div class="clabel">RTBP</div>
+      <div class="cval n" id="rtbpVal">$—</div>
+      <div class="csub">Real-time buying power</div>
+    </div>
+    <div class="card">
+      <div class="clabel">Market value</div>
+      <div class="cval n" id="mktVal">$—</div>
+      <div class="csub" id="mktSub">Open positions value</div>
+    </div>
+  </div>
+
+  <!-- Liquidity bar -->
+  <div class="panel">
+    <div class="phdr">
+      <span class="ptitle">Liquidity</span>
+      <span class="pbadge" id="liqBadge" style="background:var(--bg3);color:var(--text3);">—</span>
+    </div>
+    <div class="pbody">
+      <div class="bar-track">
+        <div class="bar-m" style="left:12.5%;background:var(--red);"></div>
+        <div class="bar-m" style="left:25%;background:var(--yellow);"></div>
+        <div class="bar-m" style="left:33%;background:var(--green);"></div>
+        <div class="bar-fill" id="barFill" style="width:0%;background:var(--red);"></div>
+      </div>
+      <div class="bar-labels">
+        <span style="left:0;color:var(--text3);">0%</span>
+        <span style="left:12.5%;transform:translateX(-50%);color:var(--red);">12.5%</span>
+        <span style="left:25%;transform:translateX(-50%);color:var(--yellow);">25%</span>
+        <span style="left:33%;transform:translateX(-50%);color:var(--green);">33%</span>
+        <span style="right:0;color:var(--text3);">100%</span>
+      </div>
+      <div class="cash-stats">
+        <div><div class="cstat-l">RTBP</div><div class="cstat-v" id="statRtbp">$—</div></div>
+        <div><div class="cstat-l">Cash</div><div class="cstat-v" id="statCash">$—</div></div>
+        <div><div class="cstat-l">Equity</div><div class="cstat-v" id="statEquity">$—</div></div>
+        <div><div class="cstat-l">Last sync</div><div class="cstat-v" style="font-size:11px;" id="statSync">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual override -->
+  <div class="panel">
+    <div class="phdr">
+      <span class="ptitle">Manual override</span>
+      <span class="pbadge" style="background:var(--bdim);color:var(--blue);">Fallback / EOD</span>
+    </div>
+    <div class="pbody">
+      <div class="input-row">
+        <div class="ig"><label class="il">Account value (USD)</label><input type="number" class="ifield" id="inAcct" placeholder="e.g. 4133"></div>
+        <div class="ig"><label class="il">RTBP (USD)</label><input type="number" class="ifield" id="inRtbp" placeholder="e.g. 1623"></div>
+        <div class="ig"><label class="il">Open P&L (USD)</label><input type="number" class="ifield" id="inPL" placeholder="e.g. -331"></div>
+      </div>
+      <button class="ibtn" onclick="applyManual()">↑ Apply</button>
+    </div>
+  </div>
+
+  <!-- Positions + Rules side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+    <!-- Positions -->
+    <div class="panel" style="margin-bottom:0;">
+      <div class="phdr">
+        <span class="ptitle">Open positions</span>
+        <span class="pbadge" id="posBadge" style="background:var(--bg3);color:var(--text3);">Live</span>
+      </div>
+      <div class="pbody">
+        <table class="ptable">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Qty</th>
+              <th>Basis</th>
+              <th>P&L</th>
+              <th style="text-align:right;">GTC</th>
+            </tr>
+          </thead>
+          <tbody id="posBody">
+            <tr><td colspan="5" style="color:var(--text3);font-size:11px;padding:10px 0;">Waiting for sync...</td></tr>
+          </tbody>
+        </table>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);margin-top:7px;" id="posRefresh">—</div>
+      </div>
+    </div>
+
+    <!-- Rules -->
+    <div class="panel" style="margin-bottom:0;">
+      <div class="phdr">
+        <span class="ptitle">June rules</span>
+        <span class="pbadge" id="rulesBadge" style="background:var(--bg3);color:var(--text3);">—</span>
+      </div>
+      <div class="pbody">
+        <div class="ritem">
+          <div class="rcheck" id="rTime">?</div>
+          <div class="rtext"><strong>10:00 EST+ to trade</strong><br>Reduce & puts only before 9 CST.</div>
+        </div>
+        <div class="ritem">
+          <div class="rcheck" id="rCash">?</div>
+          <div class="rtext"><strong>25%+ RTBP before new overnight</strong><br>Minimum before adding positions.</div>
+        </div>
+        <div class="ritem">
+          <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
+          <div class="rtext"><strong>Max 1 contract or up to $400 USD</strong><br>On any multi-contract entry.</div>
+        </div>
+        <div class="ritem">
+          <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
+          <div class="rtext"><strong>Intraday TP 15% · Swing TP 30%</strong><br>GTC placed at entry.</div>
+        </div>
+        <div class="ritem">
+          <div class="rcheck" id="rJul">—</div>
+          <div class="rtext"><strong>Jul 5 hard exit — all Jul 17 positions</strong><br>2 weeks before expiry, weekends excluded.</div>
+        </div>
+        <div class="div"></div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Exit framework</div>
+        <div style="font-size:10px;color:var(--text2);line-height:1.9;">
+          <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">01</span> ≤3wk exp + loss → <strong style="color:var(--text);">Time-based stop out</strong><br>
+          <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">02</span> Moving against → <strong style="color:var(--text);">Stop out</strong><br>
+          <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">03</span> Exited on strength → <strong style="color:var(--text);">Take profit</strong><br>
+          <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">04</span> Countertrend / too slow → <strong style="color:var(--text);">Stop out</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Helpers ────────────────────────────────────────────────────────────
+function getCST(){const n=new Date(),u=n.getTime()+n.getTimezoneOffset()*60000,j=new Date(n.getFullYear(),0,1).getTimezoneOffset(),l=new Date(n.getFullYear(),6,1).getTimezoneOffset(),d=Math.max(j,l)!==n.getTimezoneOffset();return new Date(u+(d?-5:-6)*3600000);}
+function getEST(){const n=new Date(),u=n.getTime()+n.getTimezoneOffset()*60000,j=new Date(n.getFullYear(),0,1).getTimezoneOffset(),l=new Date(n.getFullYear(),6,1).getTimezoneOffset(),d=Math.max(j,l)!==n.getTimezoneOffset();return new Date(u+(d?-4:-5)*3600000);}
+function fmtD(n){return'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function load(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
+
+// ── Clock & banner ─────────────────────────────────────────────────────
+function updateClock(){
+  const cst=getCST(),est=getEST();
+  const hh=cst.getHours().toString().padStart(2,'0'),mm=cst.getMinutes().toString().padStart(2,'0'),ss=cst.getSeconds().toString().padStart(2,'0');
+  document.getElementById('clockVal').textContent=`${hh}:${mm}:${ss}`;
+  document.getElementById('syncTime').textContent=`${hh}:${mm} CST`;
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('dateVal').textContent=`${days[cst.getDay()]} · ${months[cst.getMonth()]} ${cst.getDate()}`;
+
+  const estH=est.getHours(),estM=est.getMinutes();
+  const tot=estH*60+estM,PRE=9*60+30,END=10*60,CLOSE=16*60;
+  const banner=document.getElementById('banner'),bText=document.getElementById('bannerText'),bSub=document.getElementById('bannerSub'),bBadge=document.getElementById('bannerBadge');
+  bText.style.color='';
+  if(tot<PRE){banner.className='banner off';bText.textContent='Pre-market — set your GTC exits before open';bSub.textContent='';bBadge.className='bbadge off';bBadge.textContent='PRE-MARKET';document.getElementById('rTime').className='rcheck pass';document.getElementById('rTime').textContent='✓';}
+  else if(tot<END){const left=END-tot;banner.className='banner stop';bText.style.color='var(--red)';bText.textContent=`🚫 REDUCE ONLY — ${left} min remaining`;bSub.textContent='Exits only. No new long entries.';bBadge.className='bbadge stop';bBadge.textContent='RESTRICTED';document.getElementById('rTime').className='rcheck fail';document.getElementById('rTime').textContent='✗';}
+  else if(tot<CLOSE){banner.className='banner go';bText.style.color='var(--green)';bText.textContent='✓ Trading window open';bSub.textContent='Optimal: 10:00–11:00 EST · Don\'t do too much today.';bBadge.className='bbadge go';bBadge.textContent='OPEN';document.getElementById('rTime').className='rcheck pass';document.getElementById('rTime').textContent='✓';}
+  else{banner.className='banner off';bText.textContent='Market closed — set exit orders for tomorrow';bSub.textContent='';bBadge.className='bbadge off';bBadge.textContent='CLOSED';document.getElementById('rTime').className='rcheck pass';document.getElementById('rTime').textContent='✓';}
+
+  // Jul 5 check
+  const today=new Date(cst);today.setHours(0,0,0,0);
+  const jul5=new Date(2026,6,5);
+  const rJul=document.getElementById('rJul');
+  if(today>=jul5){rJul.className='rcheck fail';rJul.textContent='✗';}
+  else{rJul.className='rcheck';rJul.style.borderColor='var(--text3)';rJul.textContent='—';}
+
+  updateRulesBadge();
+}
+
+function updateRulesBadge(){
+  const fails=document.querySelectorAll('.rcheck.fail').length;
+  const badge=document.getElementById('rulesBadge');
+  if(fails===0){badge.style.cssText='background:var(--gdim);color:var(--green);';badge.textContent='All clear';}
+  else{badge.style.cssText='background:var(--rdim);color:var(--red);';badge.textContent=`${fails} violation${fails>1?'s':''}`;}
+}
+
+// ── Risk display ───────────────────────────────────────────────────────
+function applyRisk(rtbp,equity,cash,mktVal,ts){
+  if(!rtbp||!equity||equity===0)return;
+  const pct=(rtbp/equity)*100,pctR=Math.round(pct*10)/10;
+  document.getElementById('cashPct').textContent=pctR.toFixed(1)+'%';
+  document.getElementById('cashSub').textContent=`${fmtD(rtbp)} of ${fmtD(equity)}`;
+  document.getElementById('rtbpVal').textContent=fmtD(rtbp);
+  document.getElementById('mktVal').textContent=fmtD(mktVal||0);
+  document.getElementById('mktSub').textContent=`${fmtD(equity)} equity`;
+  const fill=document.getElementById('barFill');
+  fill.style.width=Math.min(pct,100)+'%';
+  let rating,cls;
+  if(pct>=33){rating='LIGHT';cls='g';}
+  else if(pct>=25){rating='MODERATE';cls='y';}
+  else if(pct>12.5){rating='MODERATE+';cls='y';}
+  else{rating='HEAVY';cls='r';}
+  document.getElementById('liqBadge').style.cssText=cls==='g'?'background:var(--gdim);color:var(--green);':cls==='y'?'background:var(--ydim);color:var(--yellow);':'background:var(--rdim);color:var(--red);';
+  document.getElementById('liqBadge').textContent=rating;
+  ['cashCard','riskCard','rtbpCard'].forEach(id=>document.getElementById(id).className=`card ${cls}`);
+  document.getElementById('cashPct').className=`cval ${cls}`;
+  document.getElementById('riskVal').className=`cval ${cls}`;
+  document.getElementById('riskVal').textContent=rating;
+  document.getElementById('riskSub').textContent=pctR.toFixed(1)+'% buying power remaining';
+  document.getElementById('rtbpVal').className=`cval ${cls}`;
+  fill.style.background=cls==='g'?'var(--green)':cls==='y'?'var(--yellow)':'var(--red)';
+  document.getElementById('statRtbp').textContent=fmtD(rtbp);
+  document.getElementById('statCash').textContent=fmtD(cash||0);
+  document.getElementById('statEquity').textContent=fmtD(equity);
+  const rCash=document.getElementById('rCash');
+  if(pct>=25){rCash.className='rcheck pass';rCash.textContent='✓';}
+  else{rCash.className='rcheck fail';rCash.textContent='✗';}
+  if(ts){const d=new Date(ts),cst=getCST(),diff=Math.round((cst-d)/60000);document.getElementById('statSync').textContent=diff<=1?'just now':`${diff}m ago`;document.getElementById('posRefresh').textContent=`Last sync: ${diff<=1?'just now':diff+'m ago'}`;}
+  updateRulesBadge();
+}
+
+// ── Positions ──────────────────────────────────────────────────────────
+function renderPositions(positions,orders=[]){
+  const normalize=s=>(s||'').replace('.MX','').replace('.TO','').toUpperCase();
+  const gtcMap={};
+  orders.forEach(o=>{
+    const key=normalize(o.symbol);
+    if(!gtcMap[key])gtcMap[key]=[];
+    gtcMap[key].push(o);
+  });
+  const tbody=document.getElementById('posBody');
+  if(!positions||positions.length===0){tbody.innerHTML='<tr><td colspan="5" style="color:var(--text3);font-size:11px;padding:10px 0;">No open positions</td></tr>';document.getElementById('posBadge').textContent='0';return;}
+  document.getElementById('posBadge').textContent=`${positions.length} live`;
+  document.getElementById('posBadge').style.cssText='background:var(--gdim);color:var(--green);';
+  tbody.innerHTML='';
+  positions.forEach(p=>{
+    const plColor=p.openPL>=0?'var(--green)':'var(--red)';
+    const symOrders=gtcMap[normalize(p.symbol)]||[];
+    const hasGTC=symOrders.length>0;
+    const gtcPrice=hasGTC?Math.min(...symOrders.map(o=>o.limitPrice).filter(Boolean)):null;
+    let flag='',flagCls='neu';
+    if(p.openPLPct<=-50){flag='>50% loss';flagCls='danger';}
+    else if(p.openPLPct<=-30){flag='>30% loss';flagCls='warn';}
+    else if(p.openPLPct>=30){flag='TP 30%+';flagCls='warn';}
+    else if(p.openPLPct>=15){flag='TP 15%+';flagCls='ok';}
+    else if(p.openPL>=0){flag='on track';flagCls='ok';}
+    else{flag='hold';flagCls='neu';}
+    let gtcTag='';
+    if(hasGTC&&gtcPrice){const pfc=p.currentPrice>0?((gtcPrice-p.currentPrice)/p.currentPrice*100):0;const pfcR=Math.round(pfc*10)/10;const gc=pfcR<=50?'ok':pfcR<=150?'warn':'danger';const note=pfcR<=50?'near':pfcR<=150?'stretch':'far';gtcTag=`<span class="pflag ${gc}" style="margin-left:3px;font-size:8px;">$${gtcPrice}·${note}</span>`;}
+    else{gtcTag=`<span class="pflag danger" style="margin-left:3px;font-size:8px;">⚠ No GTC</span>`;}
+    const sym=p.symbol.replace(/([A-Z]+)\d{2}([A-Z]{3})\d{2}([CP])([\d.]+)/,(_,t,mo,type,strike)=>`${t} ${strike}${type==='C'?'▲':'▼'}`).substring(0,18);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><div class="psym">${sym}</div><div class="pdet">×${p.qty}</div></td><td style="font-family:'IBM Plex Mono',monospace;color:var(--text2);font-size:10px;">${p.qty}</td><td style="font-family:'IBM Plex Mono',monospace;color:var(--text2);font-size:10px;">$${p.avgPrice}</td><td style="font-family:'IBM Plex Mono',monospace;color:${plColor};font-size:10px;">${p.openPL>=0?'+':''}$${p.openPL}<div style="font-size:8px;opacity:.7;">${p.openPLPct>=0?'+':''}${p.openPLPct}%</div></td><td style="text-align:right;"><span class="pflag ${flagCls}">${flag}</span>${gtcTag}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── API fetch ──────────────────────────────────────────────────────────
+async function fetchLive(){
+  try{
+    const[balRes,posRes,ordRes]=await Promise.all([fetch('/api/balance'),fetch('/api/positions'),fetch('/api/orders')]);
+    const bal=await balRes.json(),pos=await posRes.json(),ord=await ordRes.json();
+    if(bal.status==='ok'){applyRisk(bal.rtbp,bal.totalEquity,bal.cash,bal.marketValue,bal.timestamp);document.getElementById('syncTag').textContent='● Live';document.getElementById('syncTag').className='sync-tag live';}
+    else{document.getElementById('syncTag').textContent='○ Sync offline';document.getElementById('syncTag').className='sync-tag err';}
+    const orders=ord.status==='ok'?ord.orders:[];
+    if(pos.status==='ok')renderPositions(pos.positions,orders);
+  }catch(e){document.getElementById('syncTag').textContent='○ API error';document.getElementById('syncTag').className='sync-tag err';}
+}
+
+function applyManual(){
+  const acct=parseFloat(document.getElementById('inAcct').value),rtbp=parseFloat(document.getElementById('inRtbp').value),pl=parseFloat(document.getElementById('inPL').value);
+  if(isNaN(acct)||isNaN(rtbp)){showToast('Enter account value and RTBP');return;}
+  save('manual',{acct,rtbp,pl:isNaN(pl)?0:pl});
+  applyRisk(rtbp,acct,null,null,null);
+  showToast('✓ Manual values applied');
+}
+
+// ── Checklist sliders ──────────────────────────────────────────────────
+const sliderCfg={
+  stress:{low:'#2dd68c',mid:'#f0c040',high:'#f04060',invert:true},
+  energy:{low:'#f04060',mid:'#f0c040',high:'#2dd68c',invert:false},
+  clarity:{low:'#f04060',mid:'#f0c040',high:'#2dd68c',invert:false},
+  patience:{low:'#f04060',mid:'#f0c040',high:'#2dd68c',invert:false},
+};
+function lerp(a,b,t){const ar=parseInt(a.slice(1,3),16),ag=parseInt(a.slice(3,5),16),ab=parseInt(a.slice(5,7),16),br=parseInt(b.slice(1,3),16),bg=parseInt(b.slice(3,5),16),bb=parseInt(b.slice(5,7),16);const r=Math.round(ar+(br-ar)*t).toString(16).padStart(2,'0'),g=Math.round(ag+(bg-ag)*t).toString(16).padStart(2,'0'),bx=Math.round(ab+(bb-ab)*t).toString(16).padStart(2,'0');return`#${r}${g}${bx}`;}
+function getColor(val,cfg){const t=(val-1)/9;return t<0.5?lerp(cfg.low,cfg.mid,t*2):lerp(cfg.mid,cfg.high,(t-0.5)*2);}
+function updateSlider(name){
+  const slider=document.getElementById('slider-'+name),val=parseInt(slider.value),pct=(val-1)/9*100;
+  const cfg=sliderCfg[name],color=getColor(val,cfg);
+  document.getElementById('val-'+name).textContent=val;
+  document.getElementById('val-'+name).style.color=color;
+  document.getElementById('fill-'+name).style.width=pct+'%';
+  document.getElementById('fill-'+name).style.background=color;
+  const flagEl=document.getElementById('flag-'+name);
+  let flagText='',flagCls='';
+  if(name==='stress'&&val>=7){flagText='⚠ High stress — tilt risk elevated';flagCls='red';}
+  else if(name==='energy'&&val<=3){flagText='⚠ Low energy — impulsive shortcuts likely';flagCls='yellow';}
+  else if(name==='energy'&&val>=9){flagText='⚠ Very high energy — beware of low volume traps';flagCls='yellow';}
+  else if(name==='clarity'&&val<=3){flagText='⚠ Foggy — no new positions today';flagCls='red';}
+  else if(name==='patience'&&val<=3){flagText='🚨 Low patience — reduce-only, no new entries';flagCls='red';}
+  else if(name==='patience'&&val<=5){flagText='⚠ Moderate patience — wait for A+ setups only';flagCls='yellow';}
+  if(flagText){flagEl.textContent=flagText;flagEl.className='flag-inline show '+flagCls;}
+  else{flagEl.className='flag-inline';}
+}
+['stress','energy','clarity','patience'].forEach(updateSlider);
+
+// ── Coffee ─────────────────────────────────────────────────────────────
+let coffeeOn=false;
+function toggleCoffee(){coffeeOn=!coffeeOn;document.getElementById('coffeeRow').classList.toggle('active',coffeeOn);}
+
+// ── Checkboxes ─────────────────────────────────────────────────────────
+function toggleCheck(el){el.classList.toggle('checked');const total=document.querySelectorAll('.citem').length,done=document.querySelectorAll('.citem.checked').length;document.getElementById('checkProg').style.width=(done/total*100)+'%';}
+
+// ── Directive ──────────────────────────────────────────────────────────
+function runEvaluate(){
+  const stress=parseInt(document.getElementById('slider-stress').value),energy=parseInt(document.getElementById('slider-energy').value),clarity=parseInt(document.getElementById('slider-clarity').value),patience=parseInt(document.getElementById('slider-patience').value);
+  const checks={research:!!document.querySelector('[data-key="research"].checked'),gameplan:!!document.querySelector('[data-key="gameplan"].checked'),exits:!!document.querySelector('[data-key="exits"].checked'),levels:!!document.querySelector('[data-key="levels"].checked'),meditate:!!document.querySelector('[data-key="meditate"].checked')};
+  const flags=[],rules=[];
+  if(stress>=8)flags.push({sev:'critical',msg:'Stress critical — tilt/revenge trading risk'});
+  else if(stress>=7)flags.push({sev:'major',msg:'Stress elevated — oversizing risk'});
+  if(energy<=2)flags.push({sev:'critical',msg:'Energy depleted — impulsive shortcutting likely'});
+  else if(energy<=3)flags.push({sev:'major',msg:'Low energy — skip complex setups today'});
+  else if(energy>=9||coffeeOn)flags.push({sev:'minor',msg:coffeeOn?'Early coffee — peak stimulation at open, slow down':'Very high energy — euphoria risk, size down'});
+  if(clarity<=3)flags.push({sev:'critical',msg:'Clarity low — no new positions, exits only'});
+  else if(clarity<=5)flags.push({sev:'major',msg:'Clarity moderate — stick to watchlist only'});
+  if(patience<=2)flags.push({sev:'critical',msg:'Patience critical — force trading guaranteed'});
+  else if(patience<=4)flags.push({sev:'major',msg:'Low patience — wait for volume confirmation'});
+  else if(patience<=5)flags.push({sev:'minor',msg:'Moderate patience — raise setup quality bar'});
+  if(!checks.research)flags.push({sev:'major',msg:'No research — trading blind on news and PR'});
+  if(!checks.gameplan)flags.push({sev:'major',msg:'No gameplan written — improvisation default'});
+  if(!checks.exits)flags.push({sev:'minor',msg:'GTC exits not set — first 30 min reactive'});
+  if(!checks.meditate)flags.push({sev:'minor',msg:'No reset done — impulse gap not addressed'});
+  const critical=flags.filter(f=>f.sev==='critical').length,major=flags.filter(f=>f.sev==='major').length;
+  let mode,headline,body,cls;
+  if(critical>=1||major>=3){mode='SIT ON HANDS';cls='sit';headline='Not a day to trade. Protect the account.';body='Multiple critical flags. Risk of a damaging session is high. Exits only — review positions and step away.';rules.push('Exits only — no new opening positions');rules.push('If urge to enter — wait 10 minutes. Then another 10.');rules.push('Close anything giving you anxiety');}
+  else if(major>=2){mode='REDUCE ONLY';cls='reduce';headline='Reduce exposure. Don\'t add today.';body='Meaningful flags present. Focus on managing what you have — take profits at 15%+ or 30%+, exit anything near stop.';rules.push('No new opening positions today');rules.push('Take profits at 15%+ intraday, 30%+ swing');rules.push('10:00 EST minimum before any action');}
+  else if(major===1||flags.filter(f=>f.sev==='minor').length>=2||coffeeOn){mode='CAUTION';cls='caution';headline='Proceed carefully. Raise the bar.';body='Conditions are tradeable but not clean. Stick strictly to watchlist, max 1 contract, wait for volume confirmation.';rules.push('Watchlist names only — no adapting');rules.push('Max 1 contract, no exceptions');rules.push('Wait for volume confirmation before entry');if(coffeeOn)rules.push('Early coffee — 15 extra minutes before first entry');}
+  else{mode='CLEAR TO TRADE';cls='go';headline='Conditions look good. Execute the plan.';body='State is solid. Stick to the plan — watchlist, right window, right size. Don\'t do too much today.';rules.push('Optimal window: 10:00–11:00 EST');rules.push('GTC TP order placed at every entry');rules.push('If it\'s not on the watchlist, it doesn\'t exist today');rules.push('One good trade is enough.');}
+  const dir=document.getElementById('directive');
+  dir.className='directive '+cls;dir.style.display='block';
+  document.getElementById('dir-mode').textContent=mode;
+  document.getElementById('dir-headline').textContent=headline;
+  document.getElementById('dir-body').textContent=body;
+  const scores=[{l:'Stress',v:stress,inv:true},{l:'Energy',v:energy,inv:false},{l:'Clarity',v:clarity,inv:false},{l:'Patience',v:patience,inv:false}];
+  document.getElementById('dir-scores').innerHTML=scores.map(s=>{const p=s.inv?(10-s.v)/9:(s.v-1)/9;const c=lerp('#f04060','#2dd68c',p);return`<div class="spill"><div class="spill-l">${s.l}</div><div class="spill-v" style="color:${c}">${s.v}</div></div>`;}).join('');
+  document.getElementById('dir-rules').innerHTML=rules.map(r=>`<div class="dir-rule"><div class="rdot"></div><span>${r}</span></div>`).join('')+(flags.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);">${flags.map(f=>`<div class="dir-rule" style="margin-bottom:3px;"><div class="rdot" style="background:${f.sev==='critical'?'var(--red)':f.sev==='major'?'var(--orange)':'var(--text3)'}"></div><span style="color:${f.sev==='critical'?'var(--red)':f.sev==='major'?'var(--orange)':'var(--text3)'}">${f.msg}</span></div>`).join('')}</div>`:'');
+  dir.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function resetChecklist(){
+  ['stress','energy','clarity','patience'].forEach(n=>{document.getElementById('slider-'+n).value=5;updateSlider(n);});
+  document.querySelectorAll('.citem.checked').forEach(el=>el.classList.remove('checked'));
+  coffeeOn=false;document.getElementById('coffeeRow').classList.remove('active');
+  document.getElementById('checkProg').style.width='0%';
+  document.getElementById('directive').style.display='none';
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+const saved=load('manual');
+if(saved){document.getElementById('inAcct').value=saved.acct;document.getElementById('inRtbp').value=saved.rtbp;if(saved.pl)document.getElementById('inPL').value=saved.pl;}
+updateClock();
+setInterval(updateClock,1000);
+fetchLive();
+setInterval(fetchLive,60000);
+</script>
+</body>
+</html>
