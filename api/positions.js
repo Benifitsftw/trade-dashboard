@@ -7,15 +7,15 @@ export default async function handler(req, res) {
   const UPSTASH_TOKEN = "gQAAAAAAAjEnAAIgcDFkYWZjZDY1YjA5MjY0ZjI5YmM3NzE3ZjdlMTQzMDFlOQ";
 
   try {
-    const response = await fetch(`${UPSTASH_URL}/get/balance`, {
+    const response = await fetch(`${UPSTASH_URL}/get/positions`, {
       headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` }
     });
     const data = await response.json();
     if (!data.result) {
-      return res.status(200).json({ status: 'no_data', message: 'Python sync not running' });
+      return res.status(200).json({ status: 'no_data', positions: [] });
     }
-    const balance = JSON.parse(JSON.parse(data.result));
-    return res.status(200).json({ status: 'ok', ...balance });
+    const positions = JSON.parse(JSON.parse(data.result));
+    return res.status(200).json({ status: 'ok', positions });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
