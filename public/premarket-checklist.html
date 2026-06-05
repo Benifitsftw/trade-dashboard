@@ -596,7 +596,7 @@
   </div>
 
   <!-- Submit -->
-  <button class="submit-btn" onclick="evaluate()">→ Generate session directive</button>
+  <button class="submit-btn" onclick="runEvaluate()">→ Generate session directive</button>
 
   <!-- Result -->
   <div class="result" id="result">
@@ -737,7 +737,7 @@ function updateCheckProgress() {
 }
 
 // ── Evaluate ───────────────────────────────────────────────────────────
-function evaluate() {
+function runEvaluate() {
   const stress = parseInt(document.getElementById('slider-stress').value);
   const energy = parseInt(document.getElementById('slider-energy').value);
   const clarity = parseInt(document.getElementById('slider-clarity').value);
