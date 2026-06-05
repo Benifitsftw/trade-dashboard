@@ -264,7 +264,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
       <div class="rule-item">
         <div class="rcheck" id="rSize" style="border-color:var(--text3);color:var(--text3);">—</div>
-        <div class="rtext"><strong>Max 1 contract or $300 USD</strong><br>On any multi-contract entry.</div>
+        <div class="rtext"><strong>Max 1 contract or up to $400 USD</strong><br>On any multi-contract entry.</div>
       </div>
       <div class="rule-item">
         <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
@@ -282,7 +282,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">01</span> ≤3wk exp + loss → <strong style="color:var(--text);">Time-driven</strong><br>
         <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">02</span> Moving against → <strong style="color:var(--text);">Stop out</strong><br>
         <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">03</span> Exited on strength → <strong style="color:var(--text);">Take profit</strong><br>
-        <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">04</span> Better opportunity → <strong style="color:var(--text);">Shuffle</strong>
+        <span style="color:var(--text3);font-family:'IBM Plex Mono',monospace;">04</span> Countertrend / moving too slow → <strong style="color:var(--text);">Stop out</strong>
       </div>
     </div>
   </div>
@@ -477,7 +477,8 @@ function renderPositions(positions, orders = []) {
     // GTC check
     const symOrders = gtcMap[normalize(p.symbol)] || [];
     const hasGTC = symOrders.length > 0;
-    const gtcPrice = hasGTC ? symOrders[0].limitPrice : null;
+    // Use closest GTC = lowest limit price for STC orders
+    const gtcPrice = hasGTC ? Math.min(...symOrders.map(o => o.limitPrice).filter(Boolean)) : null;
 
     // Flag logic — P&L first, then GTC
     let flag = '', flagCls = 'neu';
@@ -495,14 +496,15 @@ function renderPositions(positions, orders = []) {
       flag = 'hold'; flagCls = 'neu';
     }
 
-    // GTC tag with % distance from current price
+    // GTC tag - show closest GTC with distance note
     let gtcTag = '';
     if (hasGTC && gtcPrice) {
       const pctFromCurrent = p.currentPrice > 0 ? ((gtcPrice - p.currentPrice) / p.currentPrice * 100) : 0;
       const pctR = Math.round(pctFromCurrent * 10) / 10;
-      const gtcCls = pctR >= 30 ? 'ok' : pctR >= 15 ? 'ok' : pctR >= 0 ? 'warn' : 'danger';
-      const sign = pctR >= 0 ? '+' : '';
-      gtcTag = `<span class="pflag ${gtcCls}" style="margin-left:4px;">GTC $${gtcPrice} (${sign}${pctR}%)</span>`;
+      // Color: green if within 50% (realistic), yellow if 50-150% (stretch), red if >150% (unlikely soon)
+      const gtcCls = pctR <= 50 ? 'ok' : pctR <= 150 ? 'warn' : 'danger';
+      const note = pctR <= 50 ? 'near' : pctR <= 150 ? 'stretch' : 'far';
+      gtcTag = `<span class="pflag ${gtcCls}" style="margin-left:4px;">GTC $${gtcPrice} · ${note}</span>`;
     } else {
       gtcTag = `<span class="pflag danger" style="margin-left:4px;">⚠ No GTC</span>`;
     }
