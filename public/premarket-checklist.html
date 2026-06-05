@@ -589,7 +589,7 @@
         <div class="check-box"><div class="check-mark"></div></div>
         <div>
           <div class="check-text">Meditated / breathing done</div>
-          <div class="check-sub">10 seconds minimum. Close the gap between acting and thinking.</div>
+          <div class="check-sub">10 seconds minimum. Build the space between impulse and action — natural restraint.</div>
         </div>
       </div>
     </div>
@@ -642,7 +642,7 @@ const sliderFlags = {
   },
   energy: {
     low: { text: '⚠ Low energy — impulsive shortcuts likely', cls: 'yellow', threshold: 3 },
-    high: { text: '⚠ Wired — early coffee? Slow down.', cls: 'yellow', thresholdHigh: 9 }
+    high: { text: '⚠ Very high energy — beware of low volume traps and overtrading', cls: 'yellow', thresholdHigh: 9 }
   },
   clarity: {
     low: { text: '⚠ Foggy — no new positions today', cls: 'red', threshold: 3 },
@@ -761,7 +761,7 @@ function runEvaluate() {
 
   if (energy <= 2) flags.push({ sev: 'critical', msg: 'Energy depleted — impulsive shortcutting likely' });
   else if (energy <= 3) flags.push({ sev: 'major', msg: 'Low energy — skip complex setups today' });
-  else if (energy >= 9 || coffeeOn) flags.push({ sev: 'minor', msg: coffeeOn ? 'Early coffee — peak stimulation at open, slow down' : 'Very high energy — euphoria risk, size down' });
+  else if (energy >= 9 || coffeeOn) flags.push({ sev: 'minor', msg: coffeeOn ? 'Early coffee — peak stimulation hits at open, slow down' : 'Very high energy — euphoria risk, size down' });
 
   if (clarity <= 3) flags.push({ sev: 'critical', msg: 'Clarity low — no new positions, exits only' });
   else if (clarity <= 5) flags.push({ sev: 'major', msg: 'Clarity moderate — stick to watchlist only, no adapting' });
