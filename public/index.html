@@ -236,7 +236,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <th>Symbol</th>
             <th>Qty</th>
             <th>P&L</th>
-            <th style="text-align:right;">Flag</th>
+            <th style="text-align:right;">GTC / Flag</th>
           </tr>
         </thead>
         <tbody id="posBody">
@@ -444,7 +444,15 @@ function applyRisk(rtbp, equity, cash, mktVal, ts) {
 }
 
 // ── Positions ──────────────────────────────────────────────────────────
-function renderPositions(positions) {
+function renderPositions(positions, orders = []) {
+  // Build lookup: symbol -> list of GTC STC orders
+  const gtcMap = {};
+  orders.forEach(o => {
+    if ((o.action === 'Sell' || o.action === 'STC') && o.timeInForce === 'GoodTillCanceled') {
+      if (!gtcMap[o.symbol]) gtcMap[o.symbol] = [];
+      gtcMap[o.symbol].push(o);
+    }
+  });
   const tbody = document.getElementById('posBody');
   if (!positions || positions.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text3);font-size:12px;padding:12px 0;">No open positions</td></tr>';
@@ -460,7 +468,12 @@ function renderPositions(positions) {
     const plColor = p.openPL >= 0 ? 'var(--green)' : 'var(--red)';
     const absPct = Math.abs(p.openPLPct);
 
-    // Flag logic
+    // GTC check
+    const symOrders = gtcMap[p.symbol] || [];
+    const hasGTC = symOrders.length > 0;
+    const gtcPrice = hasGTC ? symOrders[0].limitPrice : null;
+
+    // Flag logic — P&L first, then GTC
     let flag = '', flagCls = 'neu';
     if (p.openPLPct <= -50) {
       flag = '>50% loss'; flagCls = 'danger';
@@ -475,6 +488,11 @@ function renderPositions(positions) {
     } else {
       flag = 'hold'; flagCls = 'neu';
     }
+
+    // GTC override — show as secondary tag
+    const gtcTag = hasGTC
+      ? `<span class="pflag ok" style="margin-left:4px;">GTC $${gtcPrice}</span>`
+      : `<span class="pflag danger" style="margin-left:4px;">⚠ No GTC</span>`;
 
     // Clean symbol display
     const sym = p.symbol.replace(/(\w+)(\d{2})(\w{3})(\d{2})([CP])([\d.]+)/,
@@ -491,7 +509,10 @@ function renderPositions(positions) {
         ${p.openPL >= 0 ? '+' : ''}$${p.openPL}
         <div style="font-size:10px;opacity:.7;">${p.openPLPct >= 0 ? '+' : ''}${p.openPLPct}%</div>
       </td>
-      <td><span class="pflag ${flagCls}">${flag}</span></td>
+      <td style="text-align:right;">
+          <span class="pflag ${flagCls}">${flag}</span>
+          ${gtcTag}
+        </td>
     `;
     tbody.appendChild(tr);
   });
@@ -513,12 +534,14 @@ function updateRulesBadge() {
 // ── Fetch from API ─────────────────────────────────────────────────────
 async function fetchLive() {
   try {
-    const [balRes, posRes] = await Promise.all([
+    const [balRes, posRes, ordRes] = await Promise.all([
       fetch('/api/balance'),
-      fetch('/api/positions')
+      fetch('/api/positions'),
+      fetch('/api/orders')
     ]);
     const bal = await balRes.json();
     const pos = await posRes.json();
+    const ord = await ordRes.json();
 
     if (bal.status === 'ok') {
       applyRisk(bal.rtbp, bal.totalEquity, bal.cash, bal.marketValue, bal.timestamp);
@@ -530,8 +553,9 @@ async function fetchLive() {
       document.getElementById('syncStatus').className = 'sync-status err';
     }
 
+    const orders = ord.status === 'ok' ? ord.orders : [];
     if (pos.status === 'ok') {
-      renderPositions(pos.positions);
+      renderPositions(pos.positions, orders);
     }
 
   } catch(e) {
