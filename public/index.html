@@ -24,7 +24,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .outer{position:relative;z-index:1;max-width:1800px;margin:0 auto;padding:0 32px 40px;}
 
 /* Shared header - full width */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 0 16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 32px 16px;border-bottom:1px solid var(--border);margin-bottom:0;position:sticky;top:0;z-index:50;background:var(--bg);}
 .hdr-left{display:flex;align-items:center;gap:12px;}
 .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:glow 2s ease-in-out infinite;}
 @keyframes glow{0%,100%{opacity:1;box-shadow:0 0 10px var(--green);}50%{opacity:.5;box-shadow:0 0 4px var(--green);}}
@@ -38,7 +38,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .sync-tag.err{color:var(--red);}
 
 /* Window banner - full width */
-.banner{border-radius:8px;padding:11px 18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;transition:all .3s;}
+.banner{border-radius:8px;padding:11px 18px;margin-top:20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;transition:all .3s;}
 .banner.go{background:var(--gdim);border:1px solid var(--gborder);}
 .banner.stop{background:var(--rdim);border:1px solid var(--rborder);}
 .banner.off{background:var(--bg2);border:1px solid var(--border);}
