@@ -901,10 +901,11 @@ function readDirective() {
       status.textContent = '';
     };
 
-    utterance.onerror = () => {
+    utterance.onerror = (e) => {
       btn.textContent = '🔊 Read aloud';
       btn.onclick = readDirective;
-      status.textContent = 'Error — try again';
+      status.textContent = 'Error: ' + (e.error || 'unknown');
+      console.error('Speech error:', e);
     };
 
     window.speechSynthesis.speak(utterance);
