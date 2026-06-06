@@ -290,7 +290,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
       <div><div class="sname">Stress</div><div class="sdesc">How much weight are you carrying right now?</div></div>
       <div class="sval" id="val-stress">5</div>
     </div>
-    <div class="strack"><div class="sfill" id="fill-stress"></div><input type="range" min="1" max="10" value="5" id="slider-stress" oninput="updateSlider('stress')"></div>
+    <div class="strack"><div class="sfill" id="fill-stress"></div><input type="range" min="1" max="10" value="5" id="slider-stress"></div>
     <div class="slabels"><span>1 — none</span><span>10 — max</span></div>
     <div class="flag-inline" id="flag-stress"></div>
   </div>
@@ -300,7 +300,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
       <div><div class="sname">Energy</div><div class="sdesc">Physical alertness and drive right now.</div></div>
       <div class="sval" id="val-energy">5</div>
     </div>
-    <div class="strack"><div class="sfill" id="fill-energy"></div><input type="range" min="1" max="10" value="5" id="slider-energy" oninput="updateSlider('energy')"></div>
+    <div class="strack"><div class="sfill" id="fill-energy"></div><input type="range" min="1" max="10" value="5" id="slider-energy"></div>
     <div class="slabels"><span>1 — drained</span><span>10 — wired</span></div>
     <div class="flag-inline" id="flag-energy"></div>
   </div>
@@ -310,7 +310,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
       <div><div class="sname">Clarity</div><div class="sdesc">How clear is your plan and thinking right now?</div></div>
       <div class="sval" id="val-clarity">5</div>
     </div>
-    <div class="strack"><div class="sfill" id="fill-clarity"></div><input type="range" min="1" max="10" value="5" id="slider-clarity" oninput="updateSlider('clarity')"></div>
+    <div class="strack"><div class="sfill" id="fill-clarity"></div><input type="range" min="1" max="10" value="5" id="slider-clarity"></div>
     <div class="slabels"><span>1 — foggy</span><span>10 — sharp</span></div>
     <div class="flag-inline" id="flag-clarity"></div>
   </div>
@@ -320,7 +320,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
       <div><div class="sname">Patience</div><div class="sdesc">Can you wait for the right setup without forcing it?</div></div>
       <div class="sval" id="val-patience">5</div>
     </div>
-    <div class="strack"><div class="sfill" id="fill-patience"></div><input type="range" min="1" max="10" value="5" id="slider-patience" oninput="updateSlider('patience')"></div>
+    <div class="strack"><div class="sfill" id="fill-patience"></div><input type="range" min="1" max="10" value="5" id="slider-patience"></div>
     <div class="slabels"><span>1 — need to trade now</span><span>10 — can wait all day</span></div>
     <div class="flag-inline" id="flag-patience"></div>
   </div>
@@ -752,7 +752,10 @@ function updateSlider(name){
   if(flagText){flagEl.textContent=flagText;flagEl.className='flag-inline show '+flagCls;}
   else{flagEl.className='flag-inline';}
 }
-['stress','energy','clarity','patience'].forEach(updateSlider);
+['stress','energy','clarity','patience'].forEach(name => {
+  updateSlider(name);
+  document.getElementById('slider-'+name).addEventListener('input', () => updateSlider(name));
+});
 
 // ── Coffee ─────────────────────────────────────────────────────────────
 let coffeeOn=false;
@@ -908,9 +911,6 @@ function readDirective() {
     }
     
     if (voice) utterance.voice = voice;
-    
-    const btn = document.getElementById('readBtn');
-    const status = document.getElementById('readStatus');
     
     const btn = document.getElementById('readBtn');
     const status = document.getElementById('readStatus');
