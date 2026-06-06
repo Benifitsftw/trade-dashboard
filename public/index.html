@@ -371,7 +371,11 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
     <div class="scores-row" id="dir-scores"></div>
     <div class="dir-body" id="dir-body">—</div>
     <div class="dir-rules" id="dir-rules"></div>
-    <button class="reset-btn" onclick="resetChecklist()">↺ Reset</button>
+    <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
+      <button class="reset-btn" onclick="resetChecklist()">↺ Reset</button>
+      <button class="reset-btn" id="readBtn" onclick="readDirective()" style="border-color:var(--blue);color:var(--blue);">🔊 Read aloud</button>
+      <span id="readStatus" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);"></span>
+    </div>
   </div>
 </div>
 
@@ -811,6 +815,105 @@ function resetChecklist(){
   document.querySelectorAll('input[type=range]').forEach(el=>{el.disabled=false;el.style.opacity='1';});
   document.getElementById('coffeeRow').style.pointerEvents='';
   document.querySelectorAll('.citem').forEach(el=>{el.style.pointerEvents='';}); 
+}
+
+// ── Voice readout ─────────────────────────────────────────────────────
+function readDirective() {
+  if (!window.speechSynthesis) {
+    document.getElementById('readStatus').textContent = 'Not supported in this browser';
+    return;
+  }
+
+  // Cancel any ongoing speech
+  window.speechSynthesis.cancel();
+
+  const mode = document.getElementById('dir-mode').textContent;
+  const headline = document.getElementById('dir-headline').textContent;
+  const body = document.getElementById('dir-body').textContent;
+
+  // Get rule texts
+  const ruleEls = document.querySelectorAll('#dir-rules .dir-rule span:last-child');
+  const rules = Array.from(ruleEls).slice(0, 4).map(el => el.textContent).join('. ');
+
+  const scores = {
+    stress: document.getElementById('slider-stress').value,
+    energy: document.getElementById('slider-energy').value,
+    clarity: document.getElementById('slider-clarity').value,
+    patience: document.getElementById('slider-patience').value
+  };
+
+  const text = `Good morning. Pre-market state check complete. 
+    Session directive: ${mode}. 
+    ${headline}. 
+    Your scores — Stress ${scores.stress} out of 10. Energy ${scores.energy} out of 10. Clarity ${scores.clarity} out of 10. Patience ${scores.patience} out of 10. 
+    ${body} 
+    Key rules for today: ${rules}. 
+    Trade well.`;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.88;
+  utterance.pitch = 1.05;
+  utterance.volume = 1;
+
+  // Pick best female voice
+  function speak() {
+    const voices = window.speechSynthesis.getVoices();
+    // Priority: natural-sounding female English voices
+    const preferred = [
+      'Samantha', 'Karen', 'Victoria', 'Moira', 'Fiona',  // macOS
+      'Microsoft Zira', 'Microsoft Susan', 'Google UK English Female',
+      'Google US English', 'en-US-Neural2-F', 'en-US-Wavenet-F'
+    ];
+    
+    let voice = null;
+    for (const name of preferred) {
+      voice = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+      if (voice) break;
+    }
+    // Fallback: any female-sounding English voice
+    if (!voice) {
+      voice = voices.find(v => v.lang.startsWith('en') && 
+        (v.name.includes('Female') || v.name.includes('female') || 
+         v.name.includes('Woman') || v.name.includes('Samantha') ||
+         v.name.includes('Karen') || v.name.includes('Victoria')));
+    }
+    // Last fallback: any English voice
+    if (!voice) {
+      voice = voices.find(v => v.lang.startsWith('en'));
+    }
+    
+    if (voice) utterance.voice = voice;
+    
+    const btn = document.getElementById('readBtn');
+    const status = document.getElementById('readStatus');
+    
+    utterance.onstart = () => {
+      btn.textContent = '⏹ Stop';
+      btn.onclick = () => { window.speechSynthesis.cancel(); };
+      status.textContent = voice ? voice.name : 'default voice';
+    };
+    
+    utterance.onend = () => {
+      btn.textContent = '🔊 Read aloud';
+      btn.onclick = readDirective;
+      status.textContent = '';
+    };
+
+    utterance.onerror = () => {
+      btn.textContent = '🔊 Read aloud';
+      btn.onclick = readDirective;
+      status.textContent = 'Error — try again';
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // Voices may not be loaded yet
+  if (window.speechSynthesis.getVoices().length > 0) {
+    speak();
+  } else {
+    window.speechSynthesis.onvoiceschanged = speak;
+  }
 }
 
 // ── Init ───────────────────────────────────────────────────────────────
