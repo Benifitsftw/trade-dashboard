@@ -17,11 +17,11 @@
   --blue:#4d9fff;--bdim:rgba(77,159,255,0.12);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.35;pointer-events:none;z-index:0;}
 
 /* Layout */
-.outer{position:relative;z-index:1;width:100%;max-width:1800px;margin:0 auto;padding:0 32px 10px;flex:1;min-height:0;display:flex;flex-direction:column;}
+.outer{position:relative;z-index:1;max-width:1800px;margin:0 auto;padding:0 32px 40px;}
 
 /* Shared header - full width */
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 0 16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
@@ -53,10 +53,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .bbadge.off{background:var(--bg3);color:var(--text3);}
 
 /* Two column layout */
-.cols{display:grid;grid-template-columns:560px 1fr;gap:32px;align-items:start;flex:1;min-height:0;}
+.cols{display:grid;grid-template-columns:560px 1fr;gap:32px;align-items:start;}
 
 /* ═══ LEFT — Checklist ═══ */
-.col-left{padding-right:8px;height:100%;overflow-y:auto;}
+.col-left{padding-right:8px;}
 
 /* Slider rows */
 .srow{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:13px 16px;margin-bottom:8px;transition:border-color .2s;}
@@ -147,7 +147,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
 .reset-btn:hover{border-color:var(--border2);color:var(--text2);}
 
 /* ═══ RIGHT — Dashboard ═══ */
-.col-right{padding-right:4px;height:100%;overflow-y:auto;}
+.col-right{padding-right:4px;}
 
 /* Cards */
 .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
