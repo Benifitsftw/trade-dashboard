@@ -217,6 +217,26 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
 /* Section label */
 .slabel{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
 
+/* News feed */
+.news-feed{margin-top:14px;}
+.news-item{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:.5px solid var(--border);transition:background .15s;cursor:pointer;}
+.news-item:hover{background:var(--bg2);}
+.news-item:last-child{border-bottom:none;}
+.news-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.news-dot.bullish{background:var(--green);box-shadow:0 0 6px var(--green);}
+.news-dot.bearish{background:var(--red);box-shadow:0 0 6px var(--red);}
+.news-dot.neutral{background:var(--text3);}
+.news-sym{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--text2);min-width:42px;flex-shrink:0;margin-top:2px;}
+.news-title{font-size:12px;color:var(--text);line-height:1.4;flex:1;}
+.news-meta{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);white-space:nowrap;margin-top:2px;}
+.news-sentiment{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:1px 6px;border-radius:999px;font-weight:500;white-space:nowrap;}
+.news-sentiment.bullish{background:var(--gdim);color:var(--green);}
+.news-sentiment.bearish{background:var(--rdim);color:var(--red);}
+.news-sentiment.neutral{background:var(--bg3);color:var(--text3);}
+.news-empty{padding:14px;font-size:12px;color:var(--text3);text-align:center;}
+@keyframes newsFlash{0%{background:rgba(0,201,122,0.15);}100%{background:transparent;}}
+.news-item.new{animation:newsFlash 2s ease;}
+
 /* Toast */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:9px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);z-index:100;transform:translateY(14px);opacity:0;transition:all .3s;pointer-events:none;}
 .toast.show{transform:translateY(0);opacity:1;}
@@ -495,9 +515,25 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
   </div>
 
 </div>
+
+  <!-- News Feed -->
+  <div class="panel news-feed" style="margin-top:14px;">
+    <div class="phdr">
+      <span class="ptitle">Live news · open positions</span>
+      <span class="pbadge" id="newsBadge" style="background:var(--bg3);color:var(--text3);">Loading...</span>
+    </div>
+    <div id="newsFeed">
+      <div class="news-empty">Fetching news for your positions...</div>
+    </div>
+  </div>
+
+</div>
 </div>
 </div>
 <div class="toast" id="toast"></div>
+<audio id="newsSound" preload="auto">
+  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq4hFKyuEwu7r0aVbHh6Gv/f/3bpxLiuKzf//+uuxZy0slNv//f7ivHIwM5Hc//392r11NjWW4f/92bxzOTaX4v/91750OTaY4//91r50OTaX4f/92L10ODaX4f/92L10ODaX4f/92L10ODaX4f/92L10" type="audio/wav">
+</audio>
 
 <script>
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -616,6 +652,68 @@ function renderPositions(positions,orders=[]){
 }
 
 // ── API fetch ──────────────────────────────────────────────────────────
+// ── News ──────────────────────────────────────────────────────────────
+let seenHeadlines = new Set(JSON.parse(localStorage.getItem('seenNews') || '[]'));
+let lastNewsCheck = 0;
+
+async function fetchNews() {
+  try {
+    const res = await fetch('/api/news');
+    const data = await res.json();
+    if (data.status !== 'ok' || !data.items) return;
+    
+    const feed = document.getElementById('newsFeed');
+    const badge = document.getElementById('newsBadge');
+    
+    if (data.items.length === 0) {
+      feed.innerHTML = '<div class="news-empty">No recent news for your positions</div>';
+      badge.textContent = '0 items';
+      return;
+    }
+
+    badge.textContent = `${data.symbols?.join(', ')} · ${data.items.length} items`;
+    badge.style.cssText = 'background:var(--gdim);color:var(--green);';
+
+    let hasNew = false;
+    feed.innerHTML = '';
+    
+    data.items.forEach(item => {
+      const isNew = !seenHeadlines.has(item.title);
+      if (isNew) { hasNew = true; seenHeadlines.add(item.title); }
+      
+      const div = document.createElement('div');
+      div.className = 'news-item' + (isNew ? ' new' : '');
+      div.onclick = () => window.open(item.link, '_blank');
+      
+      const ageText = item.age < 60 ? `${item.age}m ago` : `${Math.round(item.age/60)}h ago`;
+      
+      div.innerHTML = `
+        <div class="news-dot ${item.sentiment}"></div>
+        <span class="news-sym">${item.symbol}</span>
+        <div style="flex:1;">
+          <div class="news-title">${item.title}</div>
+          <div class="news-meta">${ageText}</div>
+        </div>
+        <span class="news-sentiment ${item.sentiment}">${item.sentiment}</span>
+      `;
+      feed.appendChild(div);
+    });
+
+    // Play sound for new items
+    if (hasNew && lastNewsCheck > 0) {
+      try { document.getElementById('newsSound').play(); } catch(e) {}
+    }
+    
+    // Save seen headlines (keep last 100)
+    const arr = [...seenHeadlines].slice(-100);
+    localStorage.setItem('seenNews', JSON.stringify(arr));
+    lastNewsCheck = Date.now();
+
+  } catch(e) {
+    document.getElementById('newsFeed').innerHTML = '<div class="news-empty">News unavailable</div>';
+  }
+}
+
 async function fetchLive(){
   try{
     const[balRes,posRes,ordRes]=await Promise.all([fetch('/api/balance'),fetch('/api/positions'),fetch('/api/orders')]);
@@ -737,6 +835,8 @@ updateClock();
 setInterval(updateClock,1000);
 fetchLive();
 setInterval(fetchLive,60000);
+fetchNews();
+setInterval(fetchNews, 90000);
 </script>
 </body>
 </html>
