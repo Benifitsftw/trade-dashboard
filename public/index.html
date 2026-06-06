@@ -852,8 +852,8 @@ function readDirective() {
     Trade well.`;
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.88;
-  utterance.pitch = 1.05;
+  utterance.rate = 0.85;
+  utterance.pitch = 0.95;
   utterance.volume = 1;
 
   // Pick best female voice
@@ -861,10 +861,10 @@ function readDirective() {
     const voices = window.speechSynthesis.getVoices();
     // Priority: natural-sounding female English voices
     const preferred = [
-      'Microsoft Aria', 'Microsoft Jenny', 'Microsoft Michelle',
-      'Microsoft Sara', 'Microsoft Zira Online',
-      'Samantha', 'Karen', 'Victoria', 'Moira', 'Fiona',
-      'Microsoft Zira', 'Google UK English Female'
+      'Microsoft Guy', 'Microsoft Davis', 'Microsoft Andrew', 'Microsoft Brian',
+      'Microsoft Tony', 'Microsoft Ryan',
+      'Alex', 'Daniel', 'Google UK English Male',
+      'Microsoft David', 'Microsoft Mark'
     ];
     
     let voice = null;
@@ -875,9 +875,9 @@ function readDirective() {
     // Fallback: any female-sounding English voice
     if (!voice) {
       voice = voices.find(v => v.lang.startsWith('en') && 
-        (v.name.includes('Female') || v.name.includes('female') || 
-         v.name.includes('Woman') || v.name.includes('Samantha') ||
-         v.name.includes('Karen') || v.name.includes('Victoria')));
+        (v.name.includes('Male') || v.name.includes('male') ||
+         v.name.includes('Guy') || v.name.includes('David') ||
+         v.name.includes('Daniel') || v.name.includes('Mark')));
     }
     // Last fallback: any English voice
     if (!voice) {
