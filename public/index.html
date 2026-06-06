@@ -17,11 +17,11 @@
   --blue:#4d9fff;--bdim:rgba(77,159,255,0.12);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;height:100vh;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.35;pointer-events:none;z-index:0;}
 
 /* Layout */
-.outer{position:relative;z-index:1;max-width:1800px;margin:0 auto;padding:0 32px 20px;}
+.outer{position:relative;z-index:1;max-width:1800px;width:100%;margin:0 auto;padding:0 32px 10px;display:flex;flex-direction:column;flex:1;min-height:0;}
 
 /* Shared header - full width */
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 0 16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
@@ -53,7 +53,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .bbadge.off{background:var(--bg3);color:var(--text3);}
 
 /* Two column layout */
-.cols{display:grid;grid-template-columns:560px 1fr;gap:32px;align-items:start;height:calc(100vh - 160px);overflow:hidden;}
+.cols{display:grid;grid-template-columns:560px 1fr;gap:32px;align-items:start;flex:1;min-height:0;overflow:hidden;}
 
 /* ═══ LEFT — Checklist ═══ */
 .col-left{height:100%;overflow-y:auto;padding-right:8px;}
