@@ -376,6 +376,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
     <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
       <button class="reset-btn" onclick="resetChecklist()">↺ Reset</button>
       <button class="reset-btn" id="readBtn" onclick="readDirective()" style="border-color:var(--blue);color:var(--blue);">🔊 Read aloud</button>
+      <button class="reset-btn" onclick="listVoices()" style="font-size:10px;">voices?</button>
       <span id="readStatus" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);"></span>
     </div>
   </div>
@@ -820,6 +821,14 @@ function resetChecklist(){
 }
 
 // ── Voice readout ─────────────────────────────────────────────────────
+function listVoices() {
+  const voices = window.speechSynthesis.getVoices();
+  const en = voices.filter(v => v.lang.startsWith('en'));
+  const names = en.map(v => v.name).join(' | ');
+  document.getElementById('readStatus').textContent = names || 'No voices found';
+  console.log('All voices:', voices.map(v => v.name + ' (' + v.lang + ')'));
+}
+
 function readDirective() {
   if (!window.speechSynthesis) {
     document.getElementById('readStatus').textContent = 'Not supported in this browser';
@@ -861,10 +870,22 @@ function readDirective() {
     const voices = window.speechSynthesis.getVoices();
     // Priority: natural-sounding female English voices
     const preferred = [
-      'Microsoft Guy', 'Microsoft Davis', 'Microsoft Andrew', 'Microsoft Brian',
-      'Microsoft Tony', 'Microsoft Ryan',
-      'Alex', 'Daniel', 'Google UK English Male',
-      'Microsoft David', 'Microsoft Mark'
+      'Microsoft Andrew Multilingual Online (Natural) - English (United States)',
+      'Microsoft Brian Multilingual Online (Natural) - English (United States)', 
+      'Microsoft Andrew Online (Natural) - English (United States)',
+      'Microsoft Brian Online (Natural) - English (United States)',
+      'Microsoft Ryan Online (Natural) - English (United Kingdom)',
+      'Microsoft Liam Online (Natural) - English (Canada)',
+      'Microsoft William Online (Natural) - English (Australia)',
+      'Microsoft Darren Online (Natural) - English (Australia)',
+      'Microsoft Guy Online (Natural) - English (United States)',
+      'Microsoft Davis Online (Natural) - English (United States)',
+      'Microsoft Tony Online (Natural) - English (United States)',
+      'Microsoft Eric Online (Natural) - English (United States)',
+      'Microsoft Roger Online (Natural) - English (United States)',
+      'Microsoft Steffan Online (Natural) - English (Wales)',
+      'Microsoft David - English (United States)',
+      'Microsoft Mark - English (United States)'
     ];
     
     let voice = null;
@@ -874,10 +895,17 @@ function readDirective() {
     }
     // Fallback: any female-sounding English voice
     if (!voice) {
+      // Any natural online English male voice
       voice = voices.find(v => v.lang.startsWith('en') && 
-        (v.name.includes('Male') || v.name.includes('male') ||
-         v.name.includes('Guy') || v.name.includes('David') ||
-         v.name.includes('Daniel') || v.name.includes('Mark')));
+        v.name.includes('Online (Natural)') &&
+        (v.name.includes('Andrew') || v.name.includes('Brian') || 
+         v.name.includes('Ryan') || v.name.includes('Guy') ||
+         v.name.includes('Liam') || v.name.includes('William') ||
+         v.name.includes('Eric') || v.name.includes('Roger')));
+    }
+    if (!voice) {
+      // Any natural online English voice as last resort
+      voice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Online (Natural)'));
     }
     // Last fallback: any English voice
     if (!voice) {
