@@ -17,11 +17,11 @@
   --blue:#4d9fff;--bdim:rgba(77,159,255,0.12);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:15px;min-height:100vh;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.35;pointer-events:none;z-index:0;}
 
 /* Layout */
-.outer{position:relative;z-index:1;max-width:1600px;margin:0 auto;padding:0 28px 60px;}
+.outer{position:relative;z-index:1;max-width:1800px;margin:0 auto;padding:0 32px 60px;}
 
 /* Shared header - full width */
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 0 16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
@@ -53,7 +53,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .bbadge.off{background:var(--bg3);color:var(--text3);}
 
 /* Two column layout */
-.cols{display:grid;grid-template-columns:520px 1fr;gap:28px;align-items:start;}
+.cols{display:grid;grid-template-columns:560px 1fr;gap:32px;align-items:start;}
 
 /* ═══ LEFT — Checklist ═══ */
 .col-left{}
@@ -430,51 +430,6 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
       </div>
     </div>
   </div>
-
-  <!-- Manual override -->
-  <div class="panel">
-    <div class="phdr">
-      <span class="ptitle">Manual override</span>
-      <span class="pbadge" style="background:var(--bdim);color:var(--blue);">Fallback / EOD</span>
-    </div>
-    <div class="pbody">
-      <div class="input-row">
-        <div class="ig"><label class="il">Account value (USD)</label><input type="number" class="ifield" id="inAcct" placeholder="e.g. 4133"></div>
-        <div class="ig"><label class="il">RTBP (USD)</label><input type="number" class="ifield" id="inRtbp" placeholder="e.g. 1623"></div>
-        <div class="ig"><label class="il">Open P&L (USD)</label><input type="number" class="ifield" id="inPL" placeholder="e.g. -331"></div>
-      </div>
-      <button class="ibtn" onclick="applyManual()">↑ Apply</button>
-    </div>
-  </div>
-
-  <!-- Positions + Rules side by side -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-
-    <!-- Positions -->
-    <div class="panel" style="margin-bottom:0;">
-      <div class="phdr">
-        <span class="ptitle">Open positions</span>
-        <span class="pbadge" id="posBadge" style="background:var(--bg3);color:var(--text3);">Live</span>
-      </div>
-      <div class="pbody">
-        <table class="ptable">
-          <thead>
-            <tr>
-              <th>Symbol</th>
-              <th>Qty</th>
-              <th>Basis</th>
-              <th>P&L</th>
-              <th style="text-align:right;">GTC</th>
-            </tr>
-          </thead>
-          <tbody id="posBody">
-            <tr><td colspan="5" style="color:var(--text3);font-size:11px;padding:10px 0;">Waiting for sync...</td></tr>
-          </tbody>
-        </table>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);margin-top:7px;" id="posRefresh">—</div>
-      </div>
-    </div>
-
     <!-- Rules -->
     <div class="panel" style="margin-bottom:0;">
       <div class="phdr">
@@ -514,18 +469,18 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
     </div>
   </div>
 
-</div>
-
   <!-- News Feed -->
-  <div class="panel news-feed" style="margin-top:14px;">
+  <div class="panel" style="margin-top:10px;">
     <div class="phdr">
       <span class="ptitle">Live news · open positions</span>
       <span class="pbadge" id="newsBadge" style="background:var(--bg3);color:var(--text3);">Loading...</span>
     </div>
-    <div id="newsFeed">
+    <div id="newsFeed" style="max-height:260px;overflow-y:auto;">
       <div class="news-empty">Fetching news for your positions...</div>
     </div>
   </div>
+
+</div>
 
 </div>
 </div>
