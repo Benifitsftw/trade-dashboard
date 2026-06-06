@@ -31,7 +31,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .logo{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.15em;text-transform:uppercase;}
 .hdr-center{display:flex;align-items:center;gap:24px;}
 .hdr-clock{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:500;color:var(--text);}
-.hdr-date{font-family:'IBM Plex Mono',monospace;font-size:16px;color:var(--text2);letter-spacing:.05em;}
+.hdr-date{font-family:'IBM Plex Mono',monospace;font-size:16px;color:var(--text);letter-spacing:.05em;}
 .hdr-right{display:flex;align-items:center;gap:16px;}
 .sync-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);}
 .sync-tag.live{color:var(--green);}
@@ -847,7 +847,6 @@ function readDirective() {
   const text = `Good morning. Pre-market state check complete. 
     Session directive: ${mode}. 
     ${headline}. 
-    Your scores — Stress ${scores.stress} out of 10. Energy ${scores.energy} out of 10. Clarity ${scores.clarity} out of 10. Patience ${scores.patience} out of 10. 
     ${body} 
     Key rules for today: ${rules}. 
     Trade well.`;
