@@ -430,6 +430,35 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
       </div>
     </div>
   </div>
+
+  <!-- Positions + Rules -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0;">
+
+    <!-- Positions -->
+    <div class="panel" style="margin-bottom:0;">
+      <div class="phdr">
+        <span class="ptitle">Open positions</span>
+        <span class="pbadge" id="posBadge" style="background:var(--bg3);color:var(--text3);">Live</span>
+      </div>
+      <div class="pbody">
+        <table class="ptable">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Qty</th>
+              <th>Basis</th>
+              <th>P&L</th>
+              <th style="text-align:right;">GTC</th>
+            </tr>
+          </thead>
+          <tbody id="posBody">
+            <tr><td colspan="5" style="color:var(--text3);font-size:11px;padding:10px 0;">Waiting for sync...</td></tr>
+          </tbody>
+        </table>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);margin-top:7px;" id="posRefresh">—</div>
+      </div>
+    </div>
+
     <!-- Rules -->
     <div class="panel" style="margin-bottom:0;">
       <div class="phdr">
@@ -467,7 +496,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
         </div>
       </div>
     </div>
-  </div>
+
+  </div><!-- end positions+rules grid -->
 
   <!-- News Feed -->
   <div class="panel" style="margin-top:10px;">
