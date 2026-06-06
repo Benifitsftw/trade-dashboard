@@ -794,9 +794,6 @@ function runEvaluate(){
   const scores=[{l:'Stress',v:stress,inv:true},{l:'Energy',v:energy,inv:false},{l:'Clarity',v:clarity,inv:false},{l:'Patience',v:patience,inv:false}];
   document.getElementById('dir-scores').innerHTML=scores.map(s=>{const p=s.inv?(10-s.v)/9:(s.v-1)/9;const c=lerp('#f04060','#2dd68c',p);return`<div class="spill"><div class="spill-l">${s.l}</div><div class="spill-v" style="color:${c}">${s.v}</div></div>`;}).join('');
   document.getElementById('dir-rules').innerHTML=rules.map(r=>`<div class="dir-rule"><div class="rdot"></div><span>${r}</span></div>`).join('')+(flags.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);">${flags.map(f=>`<div class="dir-rule" style="margin-bottom:3px;"><div class="rdot" style="background:${f.sev==='critical'?'var(--red)':f.sev==='major'?'var(--orange)':'var(--text3)'}"></div><span style="color:${f.sev==='critical'?'var(--red)':f.sev==='major'?'var(--orange)':'var(--text3)'}">${f.msg}</span></div>`).join('')}</div>`:'');
-  // Save scroll positions before collapse
-  const leftScroll = document.querySelector('.col-left').scrollTop;
-  const rightScroll = document.querySelector('.col-right').scrollTop;
   // Collapse prep section and button
   document.getElementById('prepSection').className='prep-section collapsed';
   document.getElementById('submitBtn').style.display='none';
@@ -804,13 +801,9 @@ function runEvaluate(){
   document.querySelectorAll('input[type=range]').forEach(el=>{el.disabled=true;el.style.opacity='.4';});
   document.getElementById('coffeeRow').style.pointerEvents='none';
   document.querySelectorAll('.citem').forEach(el=>{el.style.pointerEvents='none';});
-  // Restore scroll positions after transition
-  setTimeout(() => {
-    document.querySelector('.col-left').scrollTop = 0;
-    document.querySelector('.col-right').scrollTop = rightScroll;
-  }, 50);
+
   dir.style.display='block';
-  dir.scrollIntoView({behavior:'smooth',block:'nearest'});
+  // directive shown in place - no scroll
 }
 
 function resetChecklist(){
