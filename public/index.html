@@ -374,7 +374,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
     <div class="dir-body" id="dir-body">—</div>
     <div class="dir-rules" id="dir-rules"></div>
     <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
-      <button class="reset-btn" onclick="resetChecklist()">↺ Reset</button>
+      <button class="reset-btn" id="resetBtn" ondblclick="resetChecklist()" title="Double-click to reset">↺ Reset (dbl-click)</button>
       <button class="reset-btn" id="readBtn" onclick="readDirective()" style="border-color:var(--blue);color:var(--blue);">🔊 Read aloud</button>
       <button class="reset-btn" onclick="listVoices()" style="font-size:10px;">voices?</button>
       <span id="readStatus" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);"></span>
@@ -753,16 +753,61 @@ function updateSlider(name){
   else{flagEl.className='flag-inline';}
 }
 ['stress','energy','clarity','patience'].forEach(name => {
+  // Load saved value
+  const saved = localStorage.getItem('state_'+name);
+  if (saved) document.getElementById('slider-'+name).value = saved;
   updateSlider(name);
-  document.getElementById('slider-'+name).addEventListener('input', () => updateSlider(name));
+  document.getElementById('slider-'+name).addEventListener('input', () => {
+    updateSlider(name);
+    localStorage.setItem('state_'+name, document.getElementById('slider-'+name).value);
+  });
 });
+
+// Restore checkboxes
+['research','gameplan','exits','levels','meditate'].forEach(key => {
+  if (localStorage.getItem('check_'+key) === 'true') {
+    const el = document.querySelector('[data-key="'+key+'"]');
+    if (el) { el.classList.add('checked'); }
+  }
+});
+// Restore coffee
+if (localStorage.getItem('coffee_on') === 'true') { coffeeOn = true; document.getElementById('coffeeRow').classList.add('active'); }
+// Restore progress bar
+const total = document.querySelectorAll('.citem').length;
+const done = document.querySelectorAll('.citem.checked').length;
+document.getElementById('checkProg').style.width = (done/total*100)+'%';
+
+// Restore directive if it was generated
+const savedDirective = localStorage.getItem('directive_html');
+const savedDirectiveCls = localStorage.getItem('directive_cls');
+if (savedDirective && savedDirectiveCls) {
+  const dir = document.getElementById('directive');
+  dir.className = 'directive ' + savedDirectiveCls;
+  dir.innerHTML = savedDirective;
+  dir.style.display = 'block';
+  document.getElementById('prepSection').className = 'prep-section collapsed';
+  document.getElementById('submitBtn').style.display = 'none';
+  document.querySelectorAll('input[type=range]').forEach(el=>{el.disabled=true;el.style.opacity='.4';});
+  document.getElementById('coffeeRow').style.pointerEvents='none';
+  document.querySelectorAll('.citem').forEach(el=>{el.style.pointerEvents='none';});
+}
 
 // ── Coffee ─────────────────────────────────────────────────────────────
 let coffeeOn=false;
-function toggleCoffee(){coffeeOn=!coffeeOn;document.getElementById('coffeeRow').classList.toggle('active',coffeeOn);}
+function toggleCoffee(){
+  coffeeOn=!coffeeOn;
+  document.getElementById('coffeeRow').classList.toggle('active',coffeeOn);
+  localStorage.setItem('coffee_on', coffeeOn);
+}
 
 // ── Checkboxes ─────────────────────────────────────────────────────────
-function toggleCheck(el){el.classList.toggle('checked');const total=document.querySelectorAll('.citem').length,done=document.querySelectorAll('.citem.checked').length;document.getElementById('checkProg').style.width=(done/total*100)+'%';}
+function toggleCheck(el){
+  el.classList.toggle('checked');
+  const key = el.getAttribute('data-key');
+  localStorage.setItem('check_'+key, el.classList.contains('checked'));
+  const total=document.querySelectorAll('.citem').length,done=document.querySelectorAll('.citem.checked').length;
+  document.getElementById('checkProg').style.width=(done/total*100)+'%';
+}
 
 // ── Directive ──────────────────────────────────────────────────────────
 function runEvaluate(){
@@ -791,6 +836,11 @@ function runEvaluate(){
   else{mode='CLEAR TO TRADE';cls='go';headline='Conditions look good. Execute the plan.';body='State is solid. Stick to the plan — watchlist, right window, right size. Don\'t do too much today.';rules.push('Optimal window: 10:00–11:00 EST');rules.push('GTC TP order placed at every entry');rules.push('If it\'s not on the watchlist, it doesn\'t exist today');rules.push('One good trade is enough.');}
   const dir=document.getElementById('directive');
   dir.className='directive '+cls;dir.style.display='block';
+  // Save directive state for refresh persistence
+  setTimeout(() => {
+    localStorage.setItem('directive_html', dir.innerHTML);
+    localStorage.setItem('directive_cls', cls);
+  }, 100);
   document.getElementById('dir-mode').textContent=mode;
   document.getElementById('dir-headline').textContent=headline;
   document.getElementById('dir-body').textContent=body;
@@ -815,6 +865,11 @@ function resetChecklist(){
   coffeeOn=false;document.getElementById('coffeeRow').classList.remove('active');
   document.getElementById('checkProg').style.width='0%';
   document.getElementById('directive').style.display='none';
+  localStorage.removeItem('directive_html');
+  localStorage.removeItem('directive_cls');
+  ['research','gameplan','exits','levels','meditate'].forEach(k=>localStorage.removeItem('check_'+k));
+  ['stress','energy','clarity','patience'].forEach(k=>localStorage.removeItem('state_'+k));
+  localStorage.removeItem('coffee_on');
   // Expand prep section and button
   document.getElementById('prepSection').className='prep-section expanded';
   document.getElementById('submitBtn').style.display='block';
