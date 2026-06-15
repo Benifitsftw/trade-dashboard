@@ -374,7 +374,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
     <div class="dir-body" id="dir-body">—</div>
     <div class="dir-rules" id="dir-rules"></div>
     <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
-      <button class="reset-btn" id="resetBtn" ondblclick="resetChecklist()" title="Double-click to reset">↺ Reset (dbl-click)</button>
+      <button class="reset-btn" id="resetBtn" ondblclick="resetChecklist()" title="Double-click to reset">↺ Reset</button>
       <button class="reset-btn" id="readBtn" onclick="readDirective()" style="border-color:var(--blue);color:var(--blue);">🔊 Read aloud</button>
       <button class="reset-btn" onclick="listVoices()" style="font-size:10px;">voices?</button>
       <span id="readStatus" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);"></span>
@@ -452,9 +452,9 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
           <thead>
             <tr>
               <th>Symbol</th>
-              <th>Qty</th>
-              <th>Basis</th>
-              <th>P&L</th>
+              <th style="cursor:pointer;user-select:none;" onclick="sortPositions('qty')" title="Sort by quantity">Qty <span id="sort-qty"></span></th>
+              <th style="cursor:pointer;user-select:none;" onclick="sortPositions('basis')" title="Sort by basis">Basis <span id="sort-basis"></span></th>
+              <th style="cursor:pointer;user-select:none;" onclick="sortPositions('pl')" title="Sort by P&L">P&L <span id="sort-pl"></span></th>
               <th style="text-align:right;">GTC</th>
             </tr>
           </thead>
