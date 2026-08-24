@@ -55,7 +55,11 @@ export default async function handler(req, res) {
         items.slice(0, 3).forEach(item => {
           const title = (item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || 
                         item.match(/<title>(.*?)<\/title>/))?.[1] || '';
-          const link = (item.match(/<link>(.*?)<\/link>/))?.[1] || '';
+          let link = (item.match(/<link><!\[CDATA\[(.*?)\]\]><\/link>/) ||
+                      item.match(/<link>(.*?)<\/link>/) ||
+                      item.match(/<guid[^>]*>(.*?)<\/guid>/))?.[1] || '';
+          link = link.replace(/&amp;/g, '&').trim();
+          if (link && !/^https?:\/\//.test(link)) link = '';
           const pubDate = (item.match(/<pubDate>(.*?)<\/pubDate>/))?.[1] || '';
           const description = (item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) ||
                               item.match(/<description>(.*?)<\/description>/))?.[1] || '';
