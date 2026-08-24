@@ -17,11 +17,11 @@
   --blue:#4d9fff;--bdim:rgba(77,159,255,0.12);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:15px;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.35;pointer-events:none;z-index:0;}
 
 /* Layout */
-.outer{position:relative;z-index:1;max-width:1800px;margin:0 auto;padding:0 32px 40px;}
+.outer{position:relative;z-index:1;max-width:1920px;margin:0 auto;padding:0 24px 32px;}
 
 /* Shared header - full width */
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 32px 16px;border-bottom:1px solid var(--border);margin-bottom:0;position:sticky;top:0;z-index:50;background:var(--bg);}
@@ -53,7 +53,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .bbadge.off{background:var(--bg3);color:var(--text3);}
 
 /* Two column layout */
-.cols{display:grid;grid-template-columns:560px 1fr;gap:32px;align-items:start;}
+.cols{display:grid;grid-template-columns:500px 1fr;gap:22px;align-items:start;}
 
 /* ═══ LEFT — Checklist ═══ */
 .col-left{padding-right:8px;}
@@ -245,6 +245,30 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 .col-left::-webkit-scrollbar{width:0;}
 .col-right::-webkit-scrollbar{width:0;}
+/* ── Aug'26 polish overrides ── */
+.hdr{padding:10px 0 8px;}
+.hdr-clock{font-size:19px;}
+.hdr-date{font-size:13px;}
+.banner{padding:8px 14px;margin-bottom:10px;}
+.cards{grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+.card{padding:9px 12px;}
+.cval{font-size:19px;}
+.clabel{font-size:9px;}
+.csub{font-size:10px;}
+.panel{margin-bottom:8px;}
+.phdr{padding:7px 12px;}
+.pbody{padding:8px 12px;}
+.ptable th{font-size:9px;padding:3px 6px;position:sticky;top:0;background:var(--bg1);z-index:2;}
+.ptable td{padding:4px 6px;}
+.psym{font-size:11px;}
+.pos-scroll{max-height:380px;overflow-y:auto;}
+.ritem{padding:6px 0;}
+.rtext{font-size:11.5px;line-height:1.45;}
+.news-item{padding:7px 12px;}
+.news-title{font-size:11.5px;}
+.sync-tag.stale{color:var(--yellow);}
+.exp-head{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+.exp-stats{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);margin-top:12px;}
 </style>
 </head>
 <body>
@@ -435,11 +459,19 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
         <div><div class="cstat-l">Equity</div><div class="cstat-v" id="statEquity">$—</div></div>
         <div><div class="cstat-l">Last sync</div><div class="cstat-v" style="font-size:11px;" id="statSync">—</div></div>
       </div>
+      <div class="exp-head"><span class="ptitle" style="font-size:10px;">Expiry concentration</span><span class="pbadge" id="expBadge" style="background:var(--bg3);color:var(--text3);">—</span></div>
+      <div class="bar-track" style="margin-top:6px;">
+        <div class="bar-m" style="left:33%;background:var(--yellow);"></div>
+        <div class="bar-m" style="left:66%;background:var(--red);"></div>
+        <div class="bar-fill" id="expFill" style="width:0%;background:var(--green);"></div>
+      </div>
+      <div class="bar-labels"><span style="left:0;color:var(--text3);">0%</span><span style="left:33%;transform:translateX(-50%);color:var(--yellow);">33%</span><span style="left:66%;transform:translateX(-50%);color:var(--red);">66%</span><span style="right:0;color:var(--text3);">share ≤45d</span></div>
+      <div class="exp-stats" id="expStats">—</div>
     </div>
   </div>
 
   <!-- Positions + Rules -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0;">
+  <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:10px;margin-bottom:0;">
 
     <!-- Positions -->
     <div class="panel" style="margin-bottom:0;">
@@ -448,6 +480,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
         <span class="pbadge" id="posBadge" style="background:var(--bg3);color:var(--text3);">Live</span>
       </div>
       <div class="pbody">
+        <div class="pos-scroll">
         <table class="ptable">
           <thead>
             <tr>
@@ -462,6 +495,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
             <tr><td colspan="5" style="color:var(--text3);font-size:11px;padding:10px 0;">Waiting for sync...</td></tr>
           </tbody>
         </table>
+        </div>
         <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);margin-top:7px;" id="posRefresh">—</div>
       </div>
     </div>
@@ -469,13 +503,13 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
     <!-- Rules -->
     <div class="panel" style="margin-bottom:0;">
       <div class="phdr">
-        <span class="ptitle">June rules</span>
+        <span class="ptitle">Rules</span>
         <span class="pbadge" id="rulesBadge" style="background:var(--bg3);color:var(--text3);">—</span>
       </div>
       <div class="pbody">
         <div class="ritem">
           <div class="rcheck" id="rTime">?</div>
-          <div class="rtext"><strong>10:00 EST+ to trade</strong><br>Reduce & puts only before 9 CST.</div>
+          <div class="rtext"><strong>9:00 CST+ to trade</strong><br>Reduce & puts only before 9:00 CST.</div>
         </div>
         <div class="ritem">
           <div class="rcheck" id="rCash">?</div>
@@ -483,7 +517,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
         </div>
         <div class="ritem">
           <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
-          <div class="rtext"><strong>Max 1 contract or up to $400 USD</strong><br>On any multi-contract entry.</div>
+          <div class="rtext"><strong>Max 1 contract or up to $4,000 USD</strong><br>On any multi-contract entry.</div>
         </div>
         <div class="ritem">
           <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
@@ -491,7 +525,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
         </div>
         <div class="ritem">
           <div class="rcheck" id="rJul">—</div>
-          <div class="rtext"><strong>Jul 5 hard exit — all Jul 17 positions</strong><br>2 weeks before expiry, weekends excluded.</div>
+          <div class="rtext"><strong>3-week hard exit — <span id="rollLbl">—</span></strong><br>Close any option ≤21 days to expiry. Auto-rolls monthly.</div>
         </div>
         <div class="div"></div>
         <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Exit framework</div>
@@ -512,7 +546,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
       <span class="ptitle">Live news · open positions</span>
       <span class="pbadge" id="newsBadge" style="background:var(--bg3);color:var(--text3);">Loading...</span>
     </div>
-    <div id="newsFeed" style="max-height:320px;overflow-y:auto;">
+    <div id="newsFeed" style="max-height:300px;overflow-y:auto;">
       <div class="news-empty">Fetching news for your positions...</div>
     </div>
   </div>
@@ -555,13 +589,6 @@ function updateClock(){
   else if(tot<CLOSE){banner.className='banner go';bText.style.color='var(--green)';bText.textContent='✓ Trading window open';bSub.textContent='Optimal: 10:00–11:00 EST · Don\'t do too much today.';bBadge.className='bbadge go';bBadge.textContent='OPEN';document.getElementById('rTime').className='rcheck pass';document.getElementById('rTime').textContent='✓';}
   else{banner.className='banner off';bText.textContent='Market closed — set exit orders for tomorrow';bSub.textContent='';bBadge.className='bbadge off';bBadge.textContent='CLOSED';document.getElementById('rTime').className='rcheck pass';document.getElementById('rTime').textContent='✓';}
 
-  // Jul 5 check
-  const today=new Date(cst);today.setHours(0,0,0,0);
-  const jul5=new Date(2026,6,5);
-  const rJul=document.getElementById('rJul');
-  if(today>=jul5){rJul.className='rcheck fail';rJul.textContent='✗';}
-  else{rJul.className='rcheck';rJul.style.borderColor='var(--text3)';rJul.textContent='—';}
-
   updateRulesBadge();
 }
 
@@ -588,27 +615,45 @@ function applyRisk(rtbp,equity,cash,mktVal,ts){
   else if(pct>=25){rating='MODERATE';cls='y';}
   else if(pct>12.5){rating='MODERATE+';cls='y';}
   else{rating='HEAVY';cls='r';}
-  document.getElementById('liqBadge').style.cssText=cls==='g'?'background:var(--gdim);color:var(--green);':cls==='y'?'background:var(--ydim);color:var(--yellow);':'background:var(--rdim);color:var(--red);';
-  document.getElementById('liqBadge').textContent=rating;
-  ['cashCard','riskCard','rtbpCard'].forEach(id=>document.getElementById(id).className=`card ${cls}`);
-  document.getElementById('cashPct').className=`cval ${cls}`;
-  document.getElementById('riskVal').className=`cval ${cls}`;
+  const hueL=Math.round(Math.min(Math.max(pct,0),40)/40*145);
+  const colL=`hsl(${hueL} 72% 52%)`;
+  document.getElementById('liqBadge').style.cssText=`background:hsl(${hueL} 72% 52% / .14);color:${colL};`;
+  document.getElementById('liqBadge').textContent=rating+' · '+pctR.toFixed(0)+'%';
+  ['cashCard','riskCard','rtbpCard'].forEach(id=>{const cd=document.getElementById(id);cd.className='card';cd.style.borderColor=`hsl(${hueL} 72% 52% / .4)`;cd.style.background=`hsl(${hueL} 72% 45% / .06)`;});
+  ['cashPct','riskVal','rtbpVal'].forEach(id=>{const el=document.getElementById(id);el.className='cval';el.style.color=colL;});
   document.getElementById('riskVal').textContent=rating;
   document.getElementById('riskSub').textContent=pctR.toFixed(1)+'% buying power remaining';
-  document.getElementById('rtbpVal').className=`cval ${cls}`;
-  fill.style.background=cls==='g'?'var(--green)':cls==='y'?'var(--yellow)':'var(--red)';
+  fill.style.background=colL;
   document.getElementById('statRtbp').textContent=fmtD(rtbp);
   document.getElementById('statCash').textContent=fmtD(cash||0);
   document.getElementById('statEquity').textContent=fmtD(equity);
   const rCash=document.getElementById('rCash');
   if(pct>=25){rCash.className='rcheck pass';rCash.textContent='✓';}
   else{rCash.className='rcheck fail';rCash.textContent='✗';}
-  if(ts){const d=new Date(ts),cst=getCST(),diff=Math.round((cst-d)/60000);document.getElementById('statSync').textContent=diff<=1?'just now':`${diff}m ago`;document.getElementById('posRefresh').textContent=`Last sync: ${diff<=1?'just now':diff+'m ago'}`;}
+  if(ts){const d=new Date(ts),cst=getCST(),diff=Math.round((cst-d)/60000);document.getElementById('statSync').textContent=diff<=1?'just now':`${diff}m ago`;document.getElementById('posRefresh').textContent=`Last sync: ${diff<=1?'just now':diff+'m ago'}`;const st=document.getElementById('syncTag');if(diff>3){st.textContent='● Stale '+diff+'m';st.className='sync-tag stale';}else{st.textContent='● Live';st.className='sync-tag live';}}
   updateRulesBadge();
 }
 
 // ── Positions ──────────────────────────────────────────────────────────
-function renderPositions(positions,orders=[]){
+// ── Sort state ──
+let lastPositions=[],lastOrders=[];
+let currentSort={key:null,dir:1};
+function sortPositions(key){
+  if(currentSort.key===key){currentSort.dir*=-1;}else{currentSort={key:key,dir:1};}
+  ['qty','basis','pl'].forEach(k=>{const el=document.getElementById('sort-'+k);if(el)el.textContent=(k===currentSort.key)?(currentSort.dir===1?'▲':'▼'):'';});
+  renderPositions(lastPositions,lastOrders,false);
+}
+// ── Expiry helpers ──
+function parseExpiry(sym){const m=(sym||'').match(/^[A-Z.]+?(\d{1,2})([A-Z][a-z]{2})(\d{2})[CP]/);if(!m)return null;const mo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}[m[2]];if(mo===undefined)return null;return new Date(2000+parseInt(m[3]),mo,parseInt(m[1]));}
+function dteOf(sym){const e=parseExpiry(sym);if(!e)return null;const t=new Date();t.setHours(0,0,0,0);return Math.round((e-t)/86400000);}
+function thirdFriday(y,m){const first=new Date(y,m,1);const off=(5-first.getDay()+7)%7;return new Date(y,m,1+off+14);}
+function fmtMD(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function updateRollRule(){const nw=new Date();const today=new Date(nw.getFullYear(),nw.getMonth(),nw.getDate());let e=thirdFriday(nw.getFullYear(),nw.getMonth());if(e<=today)e=thirdFriday(nw.getFullYear(),nw.getMonth()+1);const ex=new Date(e.getTime()-21*86400000);const el=document.getElementById('rollLbl');if(el)el.textContent='exit '+fmtMD(e)+' monthlies by '+fmtMD(ex);}
+
+function renderPositions(positions,orders=[],store=true){
+  if(store){lastPositions=positions||[];lastOrders=orders||[];}
+  let list=(positions||[]).slice();
+  if(currentSort.key){const f={qty:p=>p.qty,basis:p=>p.avgPrice,pl:p=>p.openPL}[currentSort.key];list.sort((a,b)=>(f(a)-f(b))*currentSort.dir);}
   const normalize=s=>(s||'').replace('.MX','').replace('.TO','').toUpperCase();
   const gtcMap={};
   orders.forEach(o=>{
@@ -617,11 +662,11 @@ function renderPositions(positions,orders=[]){
     gtcMap[key].push(o);
   });
   const tbody=document.getElementById('posBody');
-  if(!positions||positions.length===0){tbody.innerHTML='<tr><td colspan="5" style="color:var(--text3);font-size:11px;padding:10px 0;">No open positions</td></tr>';document.getElementById('posBadge').textContent='0';return;}
-  document.getElementById('posBadge').textContent=`${positions.length} live`;
+  if(!list.length){tbody.innerHTML='<tr><td colspan="5" style="color:var(--text3);font-size:11px;padding:10px 0;">No open positions</td></tr>';document.getElementById('posBadge').textContent='0';return;}
+  document.getElementById('posBadge').textContent=`${list.length} live`;
   document.getElementById('posBadge').style.cssText='background:var(--gdim);color:var(--green);';
   tbody.innerHTML='';
-  positions.forEach(p=>{
+  list.forEach(p=>{
     const plColor=p.openPL>=0?'var(--green)':'var(--red)';
     const symOrders=gtcMap[normalize(p.symbol)]||[];
     const hasGTC=symOrders.length>0;
@@ -637,10 +682,37 @@ function renderPositions(positions,orders=[]){
     if(hasGTC&&gtcPrice){const pfc=p.currentPrice>0?((gtcPrice-p.currentPrice)/p.currentPrice*100):0;const pfcR=Math.round(pfc*10)/10;const gc=pfcR<=50?'ok':pfcR<=150?'warn':'danger';const note=pfcR<=50?'near':pfcR<=150?'stretch':'far';gtcTag=`<span class="pflag ${gc}" style="margin-left:3px;font-size:8px;">$${gtcPrice}·${note}</span>`;}
     else{gtcTag=`<span class="pflag danger" style="margin-left:3px;font-size:8px;">⚠ No GTC</span>`;}
     const sym=p.symbol.replace(/([A-Z]+)\d{2}([A-Z]{3})\d{2}([CP])([\d.]+)/,(_,t,mo,type,strike)=>`${t} ${strike}${type==='C'?'▲':'▼'}`).substring(0,18);
+    const dte=dteOf(p.symbol);
+    let dteChip='';
+    if(dte!==null){const dc=dte<=21?'danger':dte<=45?'warn':'ok';dteChip=`<span class="pflag ${dc}" style="margin-left:4px;font-size:8px;">${dte}d</span>`;}
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><div class="psym">${sym}</div><div class="pdet">×${p.qty}</div></td><td style="font-family:'IBM Plex Mono',monospace;color:var(--text2);font-size:10px;">${p.qty}</td><td style="font-family:'IBM Plex Mono',monospace;color:var(--text2);font-size:10px;">$${p.avgPrice}</td><td style="font-family:'IBM Plex Mono',monospace;color:${plColor};font-size:10px;">${p.openPL>=0?'+':''}$${p.openPL}<div style="font-size:8px;opacity:.7;">${p.openPLPct>=0?'+':''}${p.openPLPct}%</div></td><td style="text-align:right;"><span class="pflag ${flagCls}">${flag}</span>${gtcTag}</td>`;
+    tr.innerHTML=`<td><div class="psym">${sym}${dteChip}</div><div class="pdet">×${p.qty}</div></td><td style="font-family:'IBM Plex Mono',monospace;color:var(--text2);font-size:10px;">${p.qty}</td><td style="font-family:'IBM Plex Mono',monospace;color:var(--text2);font-size:10px;">$${p.avgPrice}</td><td style="font-family:'IBM Plex Mono',monospace;color:${plColor};font-size:10px;">${p.openPL>=0?'+':''}$${p.openPL}<div style="font-size:8px;opacity:.7;">${p.openPLPct>=0?'+':''}${p.openPLPct}%</div></td><td style="text-align:right;"><span class="pflag ${flagCls}">${flag}</span>${gtcTag}</td>`;
     tbody.appendChild(tr);
   });
+  // 3-week hard-exit check (any option ≤21 DTE)
+  try{
+    const rJul=document.getElementById('rJul');
+    const shortPos=list.filter(p=>{const d=dteOf(p.symbol);return d!==null&&d<=21;});
+    if(rJul){if(shortPos.length>0){rJul.className='rcheck fail';rJul.textContent='✗';}else{rJul.className='rcheck pass';rJul.textContent='✓';}}
+  }catch(e){}
+  // Expiry concentration meter
+  try{
+    let w21=0,w45=0,wOver=0;
+    list.forEach(p=>{const d=dteOf(p.symbol);const w=Math.abs(p.marketValue)||Math.abs(p.totalCost)||0;if(d===null||d>45)wOver+=w;else if(d<=21)w21+=w;else w45+=w;});
+    const tot=w21+w45+wOver;
+    if(tot>0){
+      const pShort=(w21+w45)/tot*100,p21=w21/tot*100,p45=w45/tot*100,pOv=wOver/tot*100;
+      const hue=Math.round(145-(Math.min(pShort,100)/100)*141);
+      const col=`hsl(${hue} 72% 52%)`;
+      const fillE=document.getElementById('expFill');
+      if(fillE){fillE.style.width=Math.min(pShort,100)+'%';fillE.style.background=col;}
+      const bE=document.getElementById('expBadge');
+      if(bE){bE.textContent=pShort.toFixed(0)+'% ≤45d';bE.style.cssText=`background:hsl(${hue} 72% 52% / .14);color:${col};`;}
+      const sE=document.getElementById('expStats');
+      if(sE)sE.innerHTML=`<span style="color:var(--red);">≤21d ${p21.toFixed(0)}%</span> · <span style="color:var(--yellow);">22–45d ${p45.toFixed(0)}%</span> · <span style="color:var(--green);">&gt;45d ${pOv.toFixed(0)}%</span>`;
+    }
+  }catch(e){}
+  updateRulesBadge();
 }
 
 // ── API fetch ──────────────────────────────────────────────────────────
@@ -675,7 +747,8 @@ async function fetchNews() {
       
       const div = document.createElement('div');
       div.className = 'news-item' + (isNew ? ' new' : '');
-      div.onclick = () => window.open(item.link, '_blank');
+      if (item.link) { div.onclick = () => window.open(item.link, '_blank', 'noopener'); }
+      else { div.style.cursor = 'default'; }
       
       const ageText = item.age < 60 ? `${item.age}m ago` : `${Math.round(item.age/60)}h ago`;
       
@@ -710,19 +783,11 @@ async function fetchLive(){
   try{
     const[balRes,posRes,ordRes]=await Promise.all([fetch('/api/balance'),fetch('/api/positions'),fetch('/api/orders')]);
     const bal=await balRes.json(),pos=await posRes.json(),ord=await ordRes.json();
-    if(bal.status==='ok'){applyRisk(bal.rtbp,bal.totalEquity,bal.cash,bal.marketValue,bal.timestamp);document.getElementById('syncTag').textContent='● Live';document.getElementById('syncTag').className='sync-tag live';}
+    if(bal.status==='ok'){applyRisk(bal.rtbp,bal.totalEquity,bal.cash,bal.marketValue,bal.timestamp);}
     else{document.getElementById('syncTag').textContent='○ Sync offline';document.getElementById('syncTag').className='sync-tag err';}
     const orders=ord.status==='ok'?ord.orders:[];
     if(pos.status==='ok')renderPositions(pos.positions,orders);
   }catch(e){document.getElementById('syncTag').textContent='○ API error';document.getElementById('syncTag').className='sync-tag err';}
-}
-
-function applyManual(){
-  const acct=parseFloat(document.getElementById('inAcct').value),rtbp=parseFloat(document.getElementById('inRtbp').value),pl=parseFloat(document.getElementById('inPL').value);
-  if(isNaN(acct)||isNaN(rtbp)){showToast('Enter account value and RTBP');return;}
-  save('manual',{acct,rtbp,pl:isNaN(pl)?0:pl});
-  applyRisk(rtbp,acct,null,null,null);
-  showToast('✓ Manual values applied');
 }
 
 // ── Checklist sliders ──────────────────────────────────────────────────
@@ -763,6 +828,7 @@ function updateSlider(name){
   });
 });
 
+try{
 // Restore checkboxes
 ['research','gameplan','exits','levels','meditate'].forEach(key => {
   if (localStorage.getItem('check_'+key) === 'true') {
@@ -770,8 +836,6 @@ function updateSlider(name){
     if (el) { el.classList.add('checked'); }
   }
 });
-// Restore coffee
-if (localStorage.getItem('coffee_on') === 'true') { coffeeOn = true; document.getElementById('coffeeRow').classList.add('active'); }
 // Restore progress bar
 const total = document.querySelectorAll('.citem').length;
 const done = document.querySelectorAll('.citem.checked').length;
@@ -791,9 +855,11 @@ if (savedDirective && savedDirectiveCls) {
   document.getElementById('coffeeRow').style.pointerEvents='none';
   document.querySelectorAll('.citem').forEach(el=>{el.style.pointerEvents='none';});
 }
+}catch(e){console.warn('restore skipped:',e);}
 
 // ── Coffee ─────────────────────────────────────────────────────────────
 let coffeeOn=false;
+if (localStorage.getItem('coffee_on') === 'true') { coffeeOn = true; try{document.getElementById('coffeeRow').classList.add('active');}catch(e){} }
 function toggleCoffee(){
   coffeeOn=!coffeeOn;
   document.getElementById('coffeeRow').classList.toggle('active',coffeeOn);
@@ -1014,9 +1080,8 @@ function readDirective() {
 }
 
 // ── Init ───────────────────────────────────────────────────────────────
-const saved=load('manual');
-if(saved){document.getElementById('inAcct').value=saved.acct;document.getElementById('inRtbp').value=saved.rtbp;if(saved.pl)document.getElementById('inPL').value=saved.pl;}
 updateClock();
+try{updateRollRule();}catch(e){}
 setInterval(updateClock,1000);
 fetchLive();
 setInterval(fetchLive,60000);
