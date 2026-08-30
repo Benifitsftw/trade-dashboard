@@ -65,6 +65,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .sname{font-size:15px;font-weight:500;color:var(--text);}
 .sdesc{font-size:12px;color:var(--text3);margin-top:1px;}
 .sval{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:500;color:var(--text);min-width:24px;text-align:right;transition:color .2s;}
+.sname-row{display:inline-flex;align-items:center;gap:6px;}
+.shint{position:relative;display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--text3);color:var(--text3);font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:help;flex-shrink:0;transition:border-color .15s,color .15s;}
+.shint:hover{border-color:var(--text2);color:var(--text2);}
+.shint::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%) translateY(4px);width:max-content;max-width:230px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:11.5px;font-weight:400;font-family:'IBM Plex Sans',sans-serif;line-height:1.4;padding:8px 10px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:20;}
+.shint::before{content:'';position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--border2);opacity:0;transition:opacity .15s;z-index:20;}
+.shint:hover::after{opacity:1;transform:translateX(-50%) translateY(0);}
+.shint:hover::before{opacity:1;}
 .strack{position:relative;height:4px;margin:2px 0 6px;}
 .sfill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;transition:width .1s,background .2s;pointer-events:none;}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--bg3);border-radius:2px;outline:none;background:transparent;}
@@ -311,7 +318,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
   <!-- Sliders -->
   <div class="srow" id="row-stress">
     <div class="stop-row">
-      <div><div class="sname">Stress</div><div class="sdesc">How much weight are you carrying right now?</div></div>
+      <div><div class="sname-row"><span class="sname">Stress</span><span class="shint" data-tip="Is my head actually here, or somewhere else?">?</span></div><div class="sdesc">How much weight are you carrying right now?</div></div>
       <div class="sval" id="val-stress">5</div>
     </div>
     <div class="strack"><div class="sfill" id="fill-stress"></div><input type="range" min="1" max="10" value="5" id="slider-stress"></div>
@@ -321,7 +328,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
 
   <div class="srow" id="row-energy">
     <div class="stop-row">
-      <div><div class="sname">Energy</div><div class="sdesc">Physical alertness and drive right now.</div></div>
+      <div><div class="sname-row"><span class="sname">Energy</span><span class="shint" data-tip="Have I really slept well the last few nights?">?</span></div><div class="sdesc">Physical alertness and drive right now.</div></div>
       <div class="sval" id="val-energy">5</div>
     </div>
     <div class="strack"><div class="sfill" id="fill-energy"></div><input type="range" min="1" max="10" value="5" id="slider-energy"></div>
@@ -331,7 +338,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
 
   <div class="srow" id="row-clarity">
     <div class="stop-row">
-      <div><div class="sname">Clarity</div><div class="sdesc">How clear is your plan and thinking right now?</div></div>
+      <div><div class="sname-row"><span class="sname">Clarity</span><span class="shint" data-tip="Could I say my plan as one clean if-then — and did I follow it?">?</span></div><div class="sdesc">How clear is your plan and thinking right now?</div></div>
       <div class="sval" id="val-clarity">5</div>
     </div>
     <div class="strack"><div class="sfill" id="fill-clarity"></div><input type="range" min="1" max="10" value="5" id="slider-clarity"></div>
@@ -341,7 +348,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
 
   <div class="srow" id="row-patience">
     <div class="stop-row">
-      <div><div class="sname">Patience</div><div class="sdesc">Can you wait for the right setup without forcing it?</div></div>
+      <div><div class="sname-row"><span class="sname">Patience</span><span class="shint" data-tip="Am I sticking to plan, or improvising? Low = improvising, high = disciplined.">?</span></div><div class="sdesc">Can you wait for the right setup without forcing it?</div></div>
       <div class="sval" id="val-patience">5</div>
     </div>
     <div class="strack"><div class="sfill" id="fill-patience"></div><input type="range" min="1" max="10" value="5" id="slider-patience"></div>
