@@ -524,7 +524,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
         </div>
         <div class="ritem">
           <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
-          <div class="rtext"><strong>Max 1 contract or up to $4,000 USD</strong><br>On any multi-contract entry.</div>
+          <div class="rtext"><strong>Max 3 sectors, $1,200 / sector</strong><br>Split into smaller entries within a sector's budget. $3,600 max total deployed.</div>
         </div>
         <div class="ritem">
           <div class="rcheck" style="border-color:var(--text3);color:var(--text3);">—</div>
@@ -532,7 +532,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
         </div>
         <div class="ritem">
           <div class="rcheck" id="rJul">—</div>
-          <div class="rtext"><strong>3-week hard exit — <span id="rollLbl">—</span></strong><br>Close any option ≤21 days to expiry. Auto-rolls monthly.</div>
+          <div class="rtext"><strong>Monthly hard exit — <span id="rollLbl">—</span></strong><br>Close before the 1st Friday of expiry month (14 days before the 3rd-Friday monthly expiry). Auto-rolls once the current month's expiry passes.</div>
         </div>
         <div class="div"></div>
         <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Exit framework</div>
@@ -655,7 +655,7 @@ function parseExpiry(sym){const m=(sym||'').match(/^[A-Z.]+?(\d{1,2})([A-Z][a-z]
 function dteOf(sym){const e=parseExpiry(sym);if(!e)return null;const t=new Date();t.setHours(0,0,0,0);return Math.round((e-t)/86400000);}
 function thirdFriday(y,m){const first=new Date(y,m,1);const off=(5-first.getDay()+7)%7;return new Date(y,m,1+off+14);}
 function fmtMD(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
-function updateRollRule(){const nw=new Date();const today=new Date(nw.getFullYear(),nw.getMonth(),nw.getDate());let e=thirdFriday(nw.getFullYear(),nw.getMonth());if(e<=today)e=thirdFriday(nw.getFullYear(),nw.getMonth()+1);const ex=new Date(e.getTime()-21*86400000);const el=document.getElementById('rollLbl');if(el)el.textContent='exit '+fmtMD(e)+' monthlies by '+fmtMD(ex);}
+function updateRollRule(){const nw=new Date();const today=new Date(nw.getFullYear(),nw.getMonth(),nw.getDate());let e=thirdFriday(nw.getFullYear(),nw.getMonth());if(e<today)e=thirdFriday(nw.getFullYear(),nw.getMonth()+1);const ex=new Date(e.getTime()-14*86400000);const el=document.getElementById('rollLbl');if(el)el.textContent='exit '+fmtMD(e)+' monthlies by '+fmtMD(ex);}
 
 function renderPositions(positions,orders=[],store=true){
   if(store){lastPositions=positions||[];lastOrders=orders||[];}
