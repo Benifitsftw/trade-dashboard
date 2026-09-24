@@ -41,7 +41,12 @@ export default async function handler(req, res) {
       }
 
       // Security: only allow questrade domains
-      if (!url.includes('.questrade.com') && !url.includes('questrade.com')) {
+      let target;
+      try { target = new URL(url); } catch (e) {
+        return res.status(400).json({ error: 'Invalid url' });
+      }
+      const host = target.hostname;
+      if (target.protocol !== 'https:' || (host !== 'questrade.com' && !host.endsWith('.questrade.com'))) {
         return res.status(403).json({ error: 'Domain not allowed' });
       }
 

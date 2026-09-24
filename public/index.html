@@ -723,13 +723,26 @@ function renderPositions(positions,orders=[],store=true){
 }
 
 // ── API fetch ──────────────────────────────────────────────────────────
+let keyPrompt=null;
+function dashKey(){try{return localStorage.getItem('dashKey')||'';}catch(e){return '';}}
+async function apiFetch(path){
+  const res=await fetch(path,{headers:{'x-dashboard-key':dashKey()}});
+  if(res.status!==401)return res;
+  if(!keyPrompt)keyPrompt=Promise.resolve().then(()=>{
+    const k=prompt('Enter dashboard key:');
+    if(k){try{localStorage.setItem('dashKey',k.trim());}catch(e){}}
+    keyPrompt=null;
+  });
+  await keyPrompt;
+  return fetch(path,{headers:{'x-dashboard-key':dashKey()}});
+}
 // ── News ──────────────────────────────────────────────────────────────
 let seenHeadlines = new Set(JSON.parse(localStorage.getItem('seenNews') || '[]'));
 let lastNewsCheck = 0;
 
 async function fetchNews() {
   try {
-    const res = await fetch('/api/news');
+    const res = await apiFetch('/api/news');
     const data = await res.json();
     if (data.status !== 'ok' || !data.items) return;
     
@@ -788,7 +801,7 @@ async function fetchNews() {
 
 async function fetchLive(){
   try{
-    const[balRes,posRes,ordRes]=await Promise.all([fetch('/api/balance'),fetch('/api/positions'),fetch('/api/orders')]);
+    const[balRes,posRes,ordRes]=await Promise.all([apiFetch('/api/balance'),apiFetch('/api/positions'),apiFetch('/api/orders')]);
     const bal=await balRes.json(),pos=await posRes.json(),ord=await ordRes.json();
     if(bal.status==='ok'){applyRisk(bal.rtbp,bal.totalEquity,bal.cash,bal.marketValue,bal.timestamp);}
     else{document.getElementById('syncTag').textContent='○ Sync offline';document.getElementById('syncTag').className='sync-tag err';}

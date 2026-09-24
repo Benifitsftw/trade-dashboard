@@ -9,6 +9,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ status: 'error', error: 'Missing UPSTASH_URL or UPSTASH_TOKEN environment variable in Vercel.' });
   }
 
+  const DASHBOARD_KEY = process.env.DASHBOARD_KEY;
+  if (!DASHBOARD_KEY) {
+    return res.status(500).json({ status: 'error', error: 'Missing DASHBOARD_KEY environment variable in Vercel.' });
+  }
+  if (req.headers['x-dashboard-key'] !== DASHBOARD_KEY) {
+    return res.status(401).json({ status: 'error', error: 'Unauthorized' });
+  }
+
   try {
     const response = await fetch(`${UPSTASH_URL}/get/balance`, {
       headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` }
