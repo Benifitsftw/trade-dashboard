@@ -3,8 +3,11 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const UPSTASH_URL = "https://wanted-sponge-143655.upstash.io";
-  const UPSTASH_TOKEN = "gQAAAAAAAjEnAAIgcDFkYWZjZDY1YjA5MjY0ZjI5YmM3NzE3ZjdlMTQzMDFlOQ";
+  const UPSTASH_URL = process.env.UPSTASH_URL;
+  const UPSTASH_TOKEN = process.env.UPSTASH_TOKEN;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
+    return res.status(500).json({ status: 'error', error: 'Missing UPSTASH_URL or UPSTASH_TOKEN environment variable in Vercel.' });
+  }
 
   try {
     const response = await fetch(`${UPSTASH_URL}/get/orders`, {
