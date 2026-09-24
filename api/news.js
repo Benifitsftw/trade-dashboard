@@ -95,7 +95,7 @@ export default async function handler(req, res) {
           
           newsItems.push({
             symbol: sym.replace('.TO', ''),
-            title: title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'),
+            title: title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#0?39;|&apos;|&#x27;/gi, "'"),
             sentiment,
             timestamp: date.toISOString(),
             age: Math.round((Date.now() - date.getTime()) / 60000), // minutes ago

@@ -740,6 +740,8 @@ async function apiFetch(path){
 let seenHeadlines = new Set(JSON.parse(localStorage.getItem('seenNews') || '[]'));
 let lastNewsCheck = 0;
 
+function escHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
 async function fetchNews() {
   try {
     const res = await apiFetch('/api/news');
@@ -767,19 +769,19 @@ async function fetchNews() {
       
       const div = document.createElement('div');
       div.className = 'news-item' + (isNew ? ' new' : '');
-      if (item.link) { div.onclick = () => window.open(item.link, '_blank', 'noopener'); }
+      if (/^https?:\/\//i.test(item.link || '')) { div.onclick = () => window.open(item.link, '_blank', 'noopener'); }
       else { div.style.cursor = 'default'; }
       
       const ageText = item.age < 60 ? `${item.age}m ago` : `${Math.round(item.age/60)}h ago`;
       
       div.innerHTML = `
-        <div class="news-dot ${item.sentiment}"></div>
-        <span class="news-sym">${item.symbol}</span>
+        <div class="news-dot ${escHtml(item.sentiment)}"></div>
+        <span class="news-sym">${escHtml(item.symbol)}</span>
         <div style="flex:1;">
-          <div class="news-title">${item.title}</div>
-          <div class="news-meta">${ageText}</div>
+          <div class="news-title">${escHtml(item.title)}</div>
+          <div class="news-meta">${escHtml(ageText)}</div>
         </div>
-        <span class="news-sentiment ${item.sentiment}">${item.sentiment}</span>
+        <span class="news-sentiment ${escHtml(item.sentiment)}">${escHtml(item.sentiment)}</span>
       `;
       feed.appendChild(div);
     });
